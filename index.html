@@ -243,9 +243,9 @@
         }
 
         .queue-table {
-            width: 100%;
             border-collapse: collapse;
             font-size: 13px;
+            table-layout: fixed;
         }
 
         .queue-table thead {
@@ -276,10 +276,17 @@
         }
 
         .queue-table th.attraction-col {
-            width: 160px;
-            min-width: 160px;
-            max-width: 160px;
+            width: 140px;
+            min-width: 140px;
+            max-width: 140px;
             vertical-align: top;
+            padding: 0;
+        }
+
+        .queue-table td.attraction-cell {
+            width: 140px;
+            min-width: 140px;
+            max-width: 140px;
             padding: 0;
         }
 
@@ -333,7 +340,7 @@
             align-items: center;
             gap: 6px;
             padding: 10px 6px 8px;
-            width: 160px;
+            width: 140px;
         }
 
         .attraction-name {
@@ -1443,14 +1450,14 @@
                     const data = attraction.times[time];
                     
                     if (!data) {
-                        bodyHTML += `<td><div class="queue-cell closed"><span class="queue-badge">-</span></div></td>`;
+                        bodyHTML += `<td class="attraction-cell"><div class="queue-cell closed"><span class="queue-badge">-</span></div></td>`;
                     } else if (data.status === 'CLOSED') {
-                        bodyHTML += `<td><div class="queue-cell closed"><span class="queue-badge">—</span></div></td>`;
+                        bodyHTML += `<td class="attraction-cell"><div class="queue-cell closed"><span class="queue-badge">—</span></div></td>`;
                     } else if (data.status === 'DOWN') {
-                        bodyHTML += `<td><div class="queue-cell down"><span class="queue-badge">⚠</span></div></td>`;
+                        bodyHTML += `<td class="attraction-cell"><div class="queue-cell down"><span class="queue-badge">⚠</span></div></td>`;
                     } else {
                         const colorClass = getQueueClass(data.wait);
-                        bodyHTML += `<td><div class="queue-cell ${colorClass}"><span class="queue-badge">${data.wait}</span></div></td>`;
+                        bodyHTML += `<td class="attraction-cell"><div class="queue-cell ${colorClass}"><span class="queue-badge">${data.wait}</span></div></td>`;
                     }
                 });
                 
