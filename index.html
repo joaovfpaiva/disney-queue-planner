@@ -17,15 +17,12 @@
             --accent: #6366f1;
             --accent-glow: rgba(99, 102, 241, 0.3);
             
-            /* Queue time colors - gradient from green to red */
-            --queue-0: #10b981;
-            --queue-15: #22c55e;
-            --queue-30: #84cc16;
-            --queue-45: #eab308;
-            --queue-60: #f97316;
-            --queue-75: #ef4444;
-            --queue-90: #dc2626;
-            --queue-120: #991b1b;
+            /* Queue time colors - 5 tiers, softer palette */
+            --queue-low: #4ade80;      /* < 20 min - green */
+            --queue-medium: #a3e635;   /* 20-39 min - lime */
+            --queue-high: #fbbf24;     /* 40-69 min - amber */
+            --queue-very-high: #f97316; /* 70-99 min - orange */
+            --queue-extreme: #ef4444;  /* 100+ min - red */
         }
 
         * {
@@ -178,10 +175,10 @@
         }
 
         .legend-gradient {
-            width: 120px;
+            width: 150px;
             height: 12px;
             border-radius: 6px;
-            background: linear-gradient(90deg, var(--queue-0), var(--queue-30), var(--queue-60), var(--queue-90), var(--queue-120));
+            background: linear-gradient(90deg, var(--queue-low), var(--queue-medium), var(--queue-high), var(--queue-very-high), var(--queue-extreme));
         }
 
         .legend-values {
@@ -257,10 +254,11 @@
         }
 
         .queue-table th.attraction-col {
-            min-width: 120px;
-            max-width: 150px;
+            width: 90px;
+            min-width: 90px;
+            max-width: 90px;
             vertical-align: top;
-            padding: 8px 4px;
+            padding: 0;
         }
 
         .queue-table td.time-cell {
@@ -308,39 +306,31 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 4px;
-            padding: 12px 8px;
-            min-width: 120px;
-            max-width: 150px;
+            gap: 6px;
+            padding: 10px 6px;
+            width: 90px;
         }
 
         .attraction-name {
             font-weight: 500;
             color: var(--text-primary);
-            font-size: 12px;
+            font-size: 11px;
             text-align: center;
-            line-height: 1.3;
-            /* Truncate long names */
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
+            line-height: 1.2;
+            width: 100%;
+            /* Truncate to single line with ellipsis */
+            white-space: nowrap;
             overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .attraction-avg {
             font-family: 'Space Mono', monospace;
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 600;
-            padding: 3px 8px;
+            padding: 2px 6px;
             border-radius: 4px;
             color: white;
-        }
-
-        .attraction-type {
-            font-size: 10px;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
         
         /* Filter input */
@@ -458,25 +448,12 @@
         }
 
         /* Queue time color classes */
-        .q-0 { background: var(--queue-0); }
-        .q-5 { background: color-mix(in srgb, var(--queue-0) 66%, var(--queue-15)); }
-        .q-10 { background: color-mix(in srgb, var(--queue-0) 33%, var(--queue-15)); }
-        .q-15 { background: var(--queue-15); }
-        .q-20 { background: color-mix(in srgb, var(--queue-15) 66%, var(--queue-30)); }
-        .q-25 { background: color-mix(in srgb, var(--queue-15) 33%, var(--queue-30)); }
-        .q-30 { background: var(--queue-30); }
-        .q-35 { background: color-mix(in srgb, var(--queue-30) 66%, var(--queue-45)); }
-        .q-40 { background: color-mix(in srgb, var(--queue-30) 33%, var(--queue-45)); }
-        .q-45 { background: var(--queue-45); }
-        .q-50 { background: color-mix(in srgb, var(--queue-45) 66%, var(--queue-60)); }
-        .q-55 { background: color-mix(in srgb, var(--queue-45) 33%, var(--queue-60)); }
-        .q-60 { background: var(--queue-60); }
-        .q-70 { background: color-mix(in srgb, var(--queue-60) 50%, var(--queue-75)); }
-        .q-75 { background: var(--queue-75); }
-        .q-80 { background: color-mix(in srgb, var(--queue-75) 66%, var(--queue-90)); }
-        .q-90 { background: var(--queue-90); }
-        .q-100 { background: color-mix(in srgb, var(--queue-90) 50%, var(--queue-120)); }
-        .q-120 { background: var(--queue-120); }
+        /* 5 tier color system */
+        .q-low { background: var(--queue-low); }        /* < 20 min */
+        .q-medium { background: var(--queue-medium); }  /* 20-39 min */
+        .q-high { background: var(--queue-high); }      /* 40-69 min */
+        .q-very-high { background: var(--queue-very-high); } /* 70-99 min */
+        .q-extreme { background: var(--queue-extreme); } /* 100+ min */
 
         /* Loading & State overlays */
         .loading-overlay {
@@ -768,12 +745,13 @@
                     </div>
                 </div>
                 <div class="legend">
-                    <span class="legend-label">Tempo de fila:</span>
+                    <span class="legend-label">Fila:</span>
                     <div class="legend-gradient"></div>
                     <div class="legend-values">
-                        <span>0</span>
-                        <span>60</span>
-                        <span>120+</span>
+                        <span>&lt;20</span>
+                        <span>40</span>
+                        <span>70</span>
+                        <span>100+</span>
                     </div>
                 </div>
                 <div class="last-updated hidden" id="lastUpdated">
@@ -964,25 +942,11 @@
 
         function getQueueClass(waitTime) {
             if (waitTime === null) return 'closed';
-            if (waitTime <= 5) return 'q-0';
-            if (waitTime <= 10) return 'q-5';
-            if (waitTime <= 15) return 'q-10';
-            if (waitTime <= 20) return 'q-15';
-            if (waitTime <= 25) return 'q-20';
-            if (waitTime <= 30) return 'q-25';
-            if (waitTime <= 35) return 'q-30';
-            if (waitTime <= 40) return 'q-35';
-            if (waitTime <= 45) return 'q-40';
-            if (waitTime <= 50) return 'q-45';
-            if (waitTime <= 55) return 'q-50';
-            if (waitTime <= 60) return 'q-55';
-            if (waitTime <= 70) return 'q-60';
-            if (waitTime <= 80) return 'q-70';
-            if (waitTime <= 90) return 'q-75';
-            if (waitTime <= 100) return 'q-80';
-            if (waitTime <= 110) return 'q-90';
-            if (waitTime <= 120) return 'q-100';
-            return 'q-120';
+            if (waitTime < 20) return 'q-low';        // < 20 min
+            if (waitTime < 40) return 'q-medium';     // 20-39 min
+            if (waitTime < 70) return 'q-high';       // 40-69 min
+            if (waitTime < 100) return 'q-very-high'; // 70-99 min
+            return 'q-extreme';                       // 100+ min
         }
 
         function getStatusClass(status) {
@@ -1299,13 +1263,12 @@
             let headerHTML = '<tr><th>Horário</th>';
             filteredAttractions.forEach(attraction => {
                 const avgClass = attraction.avgWait !== null ? getQueueClass(attraction.avgWait) : 'closed';
-                const avgText = attraction.avgWait !== null ? `${attraction.avgWait} min` : '—';
+                const avgText = attraction.avgWait !== null ? `${attraction.avgWait}` : '—';
                 headerHTML += `
-                    <th class="attraction-col">
+                    <th class="attraction-col" title="${attraction.name} (média: ${attraction.avgWait ?? '—'} min)">
                         <div class="attraction-header">
-                            <div class="attraction-name" title="${attraction.name}">${attraction.name}</div>
+                            <div class="attraction-name">${attraction.name}</div>
                             <div class="attraction-avg ${avgClass}">${avgText}</div>
-                            <div class="attraction-type">${attraction.type}</div>
                         </div>
                     </th>`;
             });
