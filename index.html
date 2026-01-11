@@ -195,10 +195,34 @@
         .table-container {
             background: var(--bg-secondary);
             border-radius: 16px;
-            overflow: hidden;
+            overflow: auto;
             box-shadow: 0 4px 40px rgba(0, 0, 0, 0.3);
             position: relative;
             min-height: 300px;
+            max-height: 70vh;
+            /* Smooth scroll for touch/trackpad */
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
+        }
+        
+        .table-container::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        .table-container::-webkit-scrollbar-track {
+            background: var(--bg-tertiary);
+            border-radius: 4px;
+        }
+        
+        .table-container::-webkit-scrollbar-thumb {
+            background: var(--text-muted);
+            border-radius: 4px;
+        }
+        
+        .table-container::-webkit-scrollbar-thumb:hover {
+            background: var(--text-secondary);
         }
 
         .queue-table {
@@ -227,26 +251,43 @@
             left: 0;
             z-index: 20;
             background: var(--bg-tertiary);
-            text-align: left;
-            padding-left: 20px;
-            min-width: 200px;
+            text-align: center;
+            padding: 14px 12px;
+            min-width: 80px;
         }
 
-        .queue-table th.time-header {
+        .queue-table th.attraction-col {
+            min-width: 120px;
+            max-width: 150px;
+            vertical-align: top;
+            padding: 8px 4px;
+        }
+
+        .queue-table td.time-cell {
+            position: sticky;
+            left: 0;
+            z-index: 5;
+            background: var(--bg-secondary);
             font-family: 'Space Mono', monospace;
-            font-size: 11px;
-            min-width: 48px;
-            padding: 14px 4px;
+            font-size: 12px;
+            font-weight: 500;
+            padding: 8px 12px;
+            text-align: center;
+            white-space: nowrap;
         }
 
-        .queue-table th.time-header.hour-mark {
-            border-left: 1px solid var(--text-muted);
+        .queue-table td.time-cell.hour-mark {
+            border-top: 1px solid var(--text-muted);
             color: var(--text-primary);
             font-weight: 700;
         }
 
-        .queue-table th.time-header.early-entry {
-            background: linear-gradient(180deg, rgba(99, 102, 241, 0.2) 0%, var(--bg-tertiary) 100%);
+        .queue-table td.time-cell.early-entry {
+            background: linear-gradient(90deg, rgba(99, 102, 241, 0.15) 0%, var(--bg-secondary) 100%);
+        }
+
+        .queue-table tbody tr:hover td.time-cell {
+            background: var(--bg-tertiary);
         }
 
         .queue-table tbody tr {
@@ -263,40 +304,111 @@
             position: relative;
         }
 
-        .queue-table td:first-child {
-            position: sticky;
-            left: 0;
-            background: var(--bg-secondary);
-            z-index: 5;
-            padding: 16px 20px;
-            text-align: left;
-        }
-
-        .queue-table tbody tr:hover td:first-child {
-            background: var(--bg-tertiary);
+        .attraction-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 12px 8px;
+            min-width: 120px;
+            max-width: 150px;
         }
 
         .attraction-name {
             font-weight: 500;
             color: var(--text-primary);
-            margin-bottom: 4px;
+            font-size: 12px;
+            text-align: center;
+            line-height: 1.3;
+            /* Truncate long names */
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .attraction-avg {
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 4px;
+            color: white;
         }
 
         .attraction-type {
-            font-size: 11px;
+            font-size: 10px;
             color: var(--text-muted);
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
+        
+        /* Filter input */
+        .filter-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-input {
+            flex: 1;
+            min-width: 200px;
+            max-width: 400px;
+            padding: 12px 16px;
+            padding-left: 40px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--bg-tertiary);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+        
+        .filter-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+        
+        .filter-input::placeholder {
+            color: var(--text-muted);
+        }
+        
+        .filter-wrapper {
+            position: relative;
+            flex: 1;
+            min-width: 200px;
+            max-width: 400px;
+        }
+        
+        .filter-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+        
+        .filter-count {
+            font-size: 13px;
+            color: var(--text-secondary);
+            padding: 8px 12px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+        }
 
         .queue-cell {
             width: 100%;
-            height: 56px;
+            height: 36px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-family: 'Space Mono', monospace;
-            font-size: 11px;
+            font-size: 12px;
             font-weight: 500;
             color: white;
             text-shadow: 0 1px 2px rgba(0,0,0,0.3);
@@ -687,6 +799,14 @@
                 <span class="schedule-item-label">Fechamento:</span>
                 <span class="schedule-item-value" id="closeTime">--</span>
             </div>
+        </div>
+
+        <div class="filter-container hidden" id="filterContainer">
+            <div class="filter-wrapper">
+                <span class="filter-icon">🔍</span>
+                <input type="text" class="filter-input" id="filterInput" placeholder="Filtrar atrações por nome...">
+            </div>
+            <span class="filter-count" id="filterCount">0 atrações</span>
         </div>
 
         <div class="table-container">
@@ -1083,6 +1203,10 @@
             }
         }
 
+        // Filter state
+        let currentFilter = '';
+        let allAttractions = [];
+
         function transformToGrid(rawData) {
             const grid = {};
             const timeSlots = new Set();
@@ -1096,7 +1220,8 @@
                     grid[attractionName] = {
                         name: attractionName,
                         type: attractionType,
-                        times: {}
+                        times: {},
+                        waits: [] // Para calcular média
                     };
                 }
                 
@@ -1105,11 +1230,33 @@
                     status: record.status
                 };
                 
+                // Adicionar à lista de esperas (para média)
+                if (record.wait_minutes !== null && record.status === 'OPERATING') {
+                    grid[attractionName].waits.push(record.wait_minutes);
+                }
+                
                 timeSlots.add(time);
             });
             
+            // Calcular média para cada atração
+            const attractions = Object.values(grid).map(attr => {
+                const validWaits = attr.waits;
+                attr.avgWait = validWaits.length > 0 
+                    ? Math.round(validWaits.reduce((a, b) => a + b, 0) / validWaits.length)
+                    : null;
+                return attr;
+            });
+            
+            // Ordenar por média de espera (maior primeiro)
+            attractions.sort((a, b) => {
+                if (a.avgWait === null && b.avgWait === null) return 0;
+                if (a.avgWait === null) return 1;
+                if (b.avgWait === null) return -1;
+                return b.avgWait - a.avgWait;
+            });
+            
             return {
-                attractions: Object.values(grid).sort((a, b) => a.name.localeCompare(b.name)),
+                attractions,
                 timeSlots: [...timeSlots].sort()
             };
         }
@@ -1117,28 +1264,72 @@
         function renderTable(waitTimes) {
             const { attractions, timeSlots } = transformToGrid(waitTimes);
             
-            // Render header
-            let headerHTML = '<tr><th>Atração</th>';
-            timeSlots.forEach(time => {
-                const isHourMark = time.endsWith(':00');
-                const isEarly = currentSchedule?.early_entry && time < currentSchedule.open_time?.substring(0, 5);
-                headerHTML += `<th class="time-header ${isHourMark ? 'hour-mark' : ''} ${isEarly ? 'early-entry' : ''}">${time}</th>`;
+            // Store attractions for filtering
+            allAttractions = attractions;
+            
+            // Show filter
+            document.getElementById('filterContainer').classList.remove('hidden');
+            
+            // Render with current filter
+            renderFilteredTable(attractions, timeSlots);
+        }
+        
+        function renderFilteredTable(attractions, timeSlots) {
+            // Apply filter
+            const filter = currentFilter.toLowerCase().trim();
+            const filteredAttractions = filter 
+                ? attractions.filter(a => a.name.toLowerCase().includes(filter))
+                : attractions;
+            
+            // Update count
+            document.getElementById('filterCount').textContent = 
+                `${filteredAttractions.length} de ${attractions.length} atrações`;
+            
+            if (filteredAttractions.length === 0) {
+                document.getElementById('tableHead').innerHTML = '';
+                document.getElementById('tableBody').innerHTML = `
+                    <tr><td colspan="100" style="padding: 40px; text-align: center; color: var(--text-muted);">
+                        Nenhuma atração encontrada com "${currentFilter}"
+                    </td></tr>`;
+                return;
+            }
+            
+            // INVERTED GRID: Attractions in columns, time slots in rows
+            // Render header - first cell is "Horário", then each attraction
+            let headerHTML = '<tr><th>Horário</th>';
+            filteredAttractions.forEach(attraction => {
+                const avgClass = attraction.avgWait !== null ? getQueueClass(attraction.avgWait) : 'closed';
+                const avgText = attraction.avgWait !== null ? `${attraction.avgWait} min` : '—';
+                headerHTML += `
+                    <th class="attraction-col">
+                        <div class="attraction-header">
+                            <div class="attraction-name" title="${attraction.name}">${attraction.name}</div>
+                            <div class="attraction-avg ${avgClass}">${avgText}</div>
+                            <div class="attraction-type">${attraction.type}</div>
+                        </div>
+                    </th>`;
             });
             headerHTML += '</tr>';
             document.getElementById('tableHead').innerHTML = headerHTML;
             
             // Store all wait data for stats
-            const allWaitData = [];
+            const allWaitData = filteredAttractions.map(a => ({
+                name: a.name,
+                waits: Object.entries(a.times)
+                    .filter(([_, d]) => d.wait !== null && d.status === 'OPERATING')
+                    .map(([time, d]) => ({ time, wait: d.wait }))
+            })).filter(a => a.waits.length > 0);
             
-            // Render body
+            // Render body - each row is a time slot
             let bodyHTML = '';
-            attractions.forEach(attraction => {
-                const attractionWaits = [];
+            timeSlots.forEach(time => {
+                const isHourMark = time.endsWith(':00');
+                const isEarly = currentSchedule?.early_entry && time < currentSchedule.open_time?.substring(0, 5);
                 
                 bodyHTML += '<tr>';
-                bodyHTML += `<td><div class="attraction-name">${attraction.name}</div><div class="attraction-type">${attraction.type}</div></td>`;
+                bodyHTML += `<td class="time-cell ${isHourMark ? 'hour-mark' : ''} ${isEarly ? 'early-entry' : ''}">${time}</td>`;
                 
-                timeSlots.forEach(time => {
+                filteredAttractions.forEach(attraction => {
                     const data = attraction.times[time];
                     
                     if (!data) {
@@ -1150,14 +1341,10 @@
                     } else {
                         const colorClass = getQueueClass(data.wait);
                         const tooltip = `${attraction.name} às ${time}: ${data.wait} min`;
-                        attractionWaits.push({ time, wait: data.wait });
                         bodyHTML += `<td><div class="queue-cell ${colorClass}" data-tooltip="${tooltip}">${data.wait}</div></td>`;
                     }
                 });
                 
-                if (attractionWaits.length > 0) {
-                    allWaitData.push({ name: attraction.name, waits: attractionWaits });
-                }
                 bodyHTML += '</tr>';
             });
             
@@ -1171,6 +1358,15 @@
                 document.getElementById('statsPanel').classList.add('hidden');
             }
         }
+        
+        // Filter event listener
+        document.getElementById('filterInput').addEventListener('input', (e) => {
+            currentFilter = e.target.value;
+            if (allAttractions.length > 0) {
+                const { timeSlots } = transformToGrid(waitTimesData);
+                renderFilteredTable(allAttractions, timeSlots);
+            }
+        });
 
         function updateStats(data) {
             // Calculate summary stats
