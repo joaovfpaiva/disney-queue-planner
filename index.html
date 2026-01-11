@@ -249,16 +249,16 @@
             z-index: 20;
             background: var(--bg-tertiary);
             text-align: center;
-            padding: 14px 12px;
-            width: 100px;
-            min-width: 100px;
-            max-width: 100px;
+            padding: 14px 8px;
+            width: 80px;
+            min-width: 80px;
+            max-width: 80px;
         }
 
         .queue-table th.attraction-col {
-            width: 250px;
-            min-width: 250px;
-            max-width: 250px;
+            width: 170px;
+            min-width: 170px;
+            max-width: 170px;
             vertical-align: top;
             padding: 0;
         }
@@ -271,12 +271,12 @@
             font-family: 'Space Mono', monospace;
             font-size: 12px;
             font-weight: 500;
-            padding: 8px 12px;
+            padding: 8px;
             text-align: center;
             white-space: nowrap;
-            width: 100px;
-            min-width: 100px;
-            max-width: 100px;
+            width: 80px;
+            min-width: 80px;
+            max-width: 80px;
         }
 
         .queue-table td.time-cell.hour-mark {
@@ -311,17 +311,17 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 6px;
-            padding: 12px 8px;
-            width: 250px;
+            gap: 4px;
+            padding: 10px 6px;
+            width: 170px;
         }
 
         .attraction-name {
             font-weight: 500;
             color: var(--text-primary);
-            font-size: 12px;
+            font-size: 11px;
             text-align: center;
-            line-height: 1.3;
+            line-height: 1.2;
             width: 100%;
             /* Allow wrapping for longer names */
             white-space: normal;
@@ -330,90 +330,174 @@
 
         .attraction-avg {
             font-family: 'Space Mono', monospace;
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 600;
-            padding: 3px 8px;
+            padding: 2px 6px;
             border-radius: 4px;
             color: white;
         }
         
-        /* Filter multi-select */
+        /* Filter dropdown */
         .filter-container {
             display: flex;
-            align-items: flex-start;
+            align-items: center;
             gap: 12px;
             margin-bottom: 16px;
             flex-wrap: wrap;
         }
         
-        .filter-select {
-            min-width: 350px;
-            max-width: 500px;
-            height: 200px;
-            padding: 8px;
+        .filter-dropdown {
+            position: relative;
+        }
+        
+        .filter-trigger {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
             background: var(--bg-secondary);
             border: 1px solid var(--bg-tertiary);
-            border-radius: 10px;
+            border-radius: 8px;
             color: var(--text-primary);
             font-family: inherit;
-            font-size: 13px;
+            font-size: 14px;
             cursor: pointer;
             transition: all 0.2s ease;
+            min-width: 200px;
         }
         
-        .filter-select:hover {
+        .filter-trigger:hover {
             border-color: var(--accent);
         }
         
-        .filter-select:focus {
-            outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px var(--accent-glow);
+        .filter-trigger::after {
+            content: '▼';
+            font-size: 10px;
+            color: var(--text-muted);
+            margin-left: auto;
         }
         
-        .filter-select option {
-            padding: 8px 12px;
+        .filter-panel {
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0;
+            background: var(--bg-secondary);
+            border: 1px solid var(--bg-tertiary);
+            border-radius: 12px;
+            padding: 12px;
+            min-width: 320px;
+            max-height: 400px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+        }
+        
+        .filter-panel.hidden {
+            display: none;
+        }
+        
+        .filter-panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--bg-tertiary);
+            margin-bottom: 10px;
+        }
+        
+        .filter-panel-title {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+        
+        .filter-quick-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .filter-quick-btn {
+            padding: 4px 10px;
+            background: var(--bg-tertiary);
+            border: none;
             border-radius: 4px;
-            margin: 2px 0;
+            color: var(--text-secondary);
+            font-size: 11px;
+            cursor: pointer;
         }
         
-        .filter-select option:checked {
+        .filter-quick-btn:hover {
             background: var(--accent);
             color: white;
         }
         
-        .filter-wrapper {
+        .filter-list {
+            flex: 1;
+            overflow-y: auto;
+            max-height: 280px;
+        }
+        
+        .filter-item {
             display: flex;
-            flex-direction: column;
-            gap: 8px;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.15s ease;
         }
         
-        .filter-label {
-            font-size: 12px;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        .filter-actions {
-            display: flex;
-            gap: 8px;
-        }
-        
-        .filter-btn {
-            padding: 8px 16px;
+        .filter-item:hover {
             background: var(--bg-tertiary);
+        }
+        
+        .filter-item input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--accent);
+            cursor: pointer;
+        }
+        
+        .filter-item-name {
+            flex: 1;
+            font-size: 13px;
+            color: var(--text-primary);
+        }
+        
+        .filter-item-avg {
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: white;
+        }
+        
+        .filter-panel-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            padding-top: 12px;
+            border-top: 1px solid var(--bg-tertiary);
+            margin-top: 10px;
+        }
+        
+        .filter-ok-btn {
+            padding: 8px 24px;
+            background: var(--accent);
             border: none;
             border-radius: 6px;
-            color: var(--text-primary);
+            color: white;
             font-family: inherit;
-            font-size: 12px;
+            font-size: 13px;
+            font-weight: 500;
             cursor: pointer;
             transition: all 0.2s ease;
         }
         
-        .filter-btn:hover {
-            background: var(--accent);
+        .filter-ok-btn:hover {
+            background: #4f46e5;
         }
         
         .filter-count {
@@ -422,7 +506,6 @@
             padding: 8px 12px;
             background: var(--bg-tertiary);
             border-radius: 8px;
-            align-self: flex-start;
         }
 
         .queue-cell {
@@ -443,9 +526,9 @@
 
         .queue-cell:hover {
             transform: scale(1.1);
-            z-index: 10;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-            border-radius: 4px;
+            /* z-index: 10; */ 
+            /* box-shadow: 0 4px 20px rgba(0,0,0,0.4); */
+            /* border-radius: 4px; */
         }
 
 
@@ -792,13 +875,24 @@
         </div>
 
         <div class="filter-container hidden" id="filterContainer">
-            <div class="filter-wrapper">
-                <span class="filter-label">Filtrar atrações (Ctrl+Click para múltiplas)</span>
-                <select class="filter-select" id="filterSelect" multiple>
-                </select>
-                <div class="filter-actions">
-                    <button class="filter-btn" onclick="selectAllAttractions()">Selecionar Todas</button>
-                    <button class="filter-btn" onclick="clearSelection()">Limpar Seleção</button>
+            <div class="filter-dropdown">
+                <button class="filter-trigger" onclick="toggleFilterPanel()">
+                    <span id="filterTriggerText">Todas as atrações</span>
+                </button>
+                <div class="filter-panel hidden" id="filterPanel">
+                    <div class="filter-panel-header">
+                        <span class="filter-panel-title">Selecionar atrações</span>
+                        <div class="filter-quick-actions">
+                            <button class="filter-quick-btn" onclick="selectAllCheckboxes()">Todas</button>
+                            <button class="filter-quick-btn" onclick="clearAllCheckboxes()">Nenhuma</button>
+                        </div>
+                    </div>
+                    <div class="filter-list" id="filterList">
+                        <!-- Populated by JS -->
+                    </div>
+                    <div class="filter-panel-footer">
+                        <button class="filter-ok-btn" onclick="applyFilterAndClose()">OK</button>
+                    </div>
                 </div>
             </div>
             <span class="filter-count" id="filterCount">0 atrações</span>
@@ -1255,6 +1349,9 @@
             // Initialize filter with all selected
             currentFilter = attractions.map(a => a.name);
             
+            // Close filter panel if open
+            closeFilterPanel();
+            
             // Render with current filter
             renderFilteredTable(attractions, timeSlots);
         }
@@ -1348,7 +1445,7 @@
         
         // Populate filter dropdown (sorted by avg wait time)
         function populateFilterDropdown(attractions) {
-            const select = document.getElementById('filterSelect');
+            const list = document.getElementById('filterList');
             
             // Sort by avg wait time (highest first) - same as table order
             const sorted = [...attractions].sort((a, b) => {
@@ -1360,41 +1457,79 @@
             
             let html = '';
             sorted.forEach(attr => {
-                const avgText = attr.avgWait !== null ? ` (${attr.avgWait} min)` : ' (—)';
-                html += `<option value="${attr.name}" selected>${attr.name}${avgText}</option>`;
+                const avgClass = attr.avgWait !== null ? getQueueClass(attr.avgWait) : 'closed';
+                const avgText = attr.avgWait !== null ? attr.avgWait : '—';
+                html += `
+                    <label class="filter-item">
+                        <input type="checkbox" value="${attr.name}" checked>
+                        <span class="filter-item-name">${attr.name}</span>
+                        <span class="filter-item-avg ${avgClass}">${avgText}</span>
+                    </label>`;
             });
             
-            select.innerHTML = html;
+            list.innerHTML = html;
+            updateTriggerText();
         }
         
-        // Select all attractions
-        function selectAllAttractions() {
-            const select = document.getElementById('filterSelect');
-            Array.from(select.options).forEach(opt => opt.selected = true);
-            applyFilter();
+        // Toggle filter panel
+        function toggleFilterPanel() {
+            const panel = document.getElementById('filterPanel');
+            panel.classList.toggle('hidden');
         }
         
-        // Clear selection
-        function clearSelection() {
-            const select = document.getElementById('filterSelect');
-            Array.from(select.options).forEach(opt => opt.selected = false);
-            applyFilter();
+        // Close filter panel
+        function closeFilterPanel() {
+            document.getElementById('filterPanel').classList.add('hidden');
         }
         
-        // Apply filter based on selection
-        function applyFilter() {
-            const select = document.getElementById('filterSelect');
-            const selectedOptions = Array.from(select.selectedOptions).map(opt => opt.value);
-            currentFilter = selectedOptions;
+        // Select all checkboxes
+        function selectAllCheckboxes() {
+            document.querySelectorAll('#filterList input[type="checkbox"]').forEach(cb => cb.checked = true);
+            updateTriggerText();
+        }
+        
+        // Clear all checkboxes
+        function clearAllCheckboxes() {
+            document.querySelectorAll('#filterList input[type="checkbox"]').forEach(cb => cb.checked = false);
+            updateTriggerText();
+        }
+        
+        // Update trigger button text
+        function updateTriggerText() {
+            const checkboxes = document.querySelectorAll('#filterList input[type="checkbox"]');
+            const checked = document.querySelectorAll('#filterList input[type="checkbox"]:checked');
+            const trigger = document.getElementById('filterTriggerText');
+            
+            if (checked.length === 0) {
+                trigger.textContent = 'Nenhuma selecionada';
+            } else if (checked.length === checkboxes.length) {
+                trigger.textContent = 'Todas as atrações';
+            } else {
+                trigger.textContent = `${checked.length} de ${checkboxes.length} selecionadas`;
+            }
+        }
+        
+        // Apply filter and close panel
+        function applyFilterAndClose() {
+            const checked = document.querySelectorAll('#filterList input[type="checkbox"]:checked');
+            currentFilter = Array.from(checked).map(cb => cb.value);
             
             if (allAttractions.length > 0) {
                 const { timeSlots } = transformToGrid(waitTimesData);
                 renderFilteredTable(allAttractions, timeSlots);
             }
+            
+            closeFilterPanel();
+            updateTriggerText();
         }
         
-        // Filter event listener
-        document.getElementById('filterSelect').addEventListener('change', applyFilter);
+        // Close panel when clicking outside
+        document.addEventListener('click', (e) => {
+            const dropdown = document.querySelector('.filter-dropdown');
+            if (dropdown && !dropdown.contains(e.target)) {
+                closeFilterPanel();
+            }
+        });
 
         function updateStats(data) {
             // Calculate summary stats
