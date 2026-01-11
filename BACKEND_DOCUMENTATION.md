@@ -330,9 +330,15 @@ const sortedSlots = [...timeSlots].sort();
 ## Notas Importantes
 
 ### Timezone
-- Todos os dados estão em **UTC** no banco
+- **wait_times.recorded_at**: `TIMESTAMPTZ` em **UTC** (ex: `2026-01-10T14:00:00Z`)
+- **park_schedules.date**: `DATE` no **horário de Orlando** (ex: `2026-01-10`)
+- **park_schedules.early_entry/open_time/close_time**: `TIME` no **horário de Orlando** (ex: `09:00:00`)
 - Orlando usa **America/New_York** (EST = UTC-5, EDT = UTC-4)
-- Converter no frontend para exibição
+- O frontend converte automaticamente UTC → Orlando usando `toLocaleString` com timezone
+- **Importante**: Ao buscar dados de uma data de Orlando, converter os limites para UTC:
+  - Ex: Para buscar dados de 10/jan Orlando:
+    - Início: `2026-01-10T05:00:00Z` (meia-noite Orlando = 05:00 UTC em EST)
+    - Fim: `2026-01-11T05:00:00Z`
 
 ### Status das Atrações
 - `OPERATING`: Funcionando normalmente

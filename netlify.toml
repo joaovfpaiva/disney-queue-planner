@@ -1,18 +1,25 @@
 # Netlify Configuration
 # As variáveis de ambiente são configuradas no painel do Netlify:
 # Site settings → Environment variables
+# IMPORTANTE: Usar prefixo VITE_ para expor ao frontend
 
 [build]
-  publish = "."
-  command = "node build.js"
+  publish = "dist"
+  command = "npm run build"
   
   [build.environment]
     # Supabase anon key é PÚBLICA por design (RLS controla acesso)
     # Ignorar no scanner de secrets do Netlify
-    SECRETS_SCAN_OMIT_KEYS = "SUPABASE_URL,SUPABASE_ANON_KEY"
+    SECRETS_SCAN_OMIT_KEYS = "VITE_SUPABASE_URL,VITE_SUPABASE_ANON_KEY"
 
 [[headers]]
   for = "/*"
   [headers.values]
     X-Frame-Options = "DENY"
     X-Content-Type-Options = "nosniff"
+
+# SPA fallback - redireciona todas as rotas para index.html
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

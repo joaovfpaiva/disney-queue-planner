@@ -13,17 +13,23 @@ Thumbs.db
 *.log
 npm-debug.log*
 
+# Dependencies
+node_modules
+
+# Build output
+dist
+
 # Local development - NUNCA commitar credenciais!
 .env
 .env.local
 .env.*.local
 
-# Config gerado pelo build (contém credenciais)
+# Config gerado pelo build antigo (contém credenciais)
 config.js
 
 # Backup files
 *.bak
 *.backup
 
-# Old prototype (can be removed after confirming new version works)
-# disney-queue-visualizer.html
+# Legacy folder contains old vanilla JS version
+# (kept for reference, not actively maintained)

@@ -20,10 +20,37 @@ Sistema de visualização de tempos de fila de parques temáticos em Orlando. Ac
 - ⏰ **Horários do Parque** - Early Entry, abertura e fechamento
 - 📈 **Estatísticas** - Média, mínimo, máximo e melhores horários
 - 🔄 **Auto-refresh** - Atualiza automaticamente para o dia atual
+- 🌴 **Timezone Orlando** - Todos os horários em America/New_York
 
-## 🚀 Deploy
+## 🛠️ Tech Stack
 
-### Opção 1: Netlify (Recomendado)
+- **React 18** + TypeScript
+- **Vite** - Build tool
+- **TanStack Query** - Data fetching + caching
+- **date-fns-tz** - Timezone handling
+- **Supabase** - Backend (PostgreSQL)
+
+## 🚀 Desenvolvimento Local
+
+```bash
+# Clonar repositório
+git clone https://github.com/seu-usuario/park-queue-planner.git
+cd park-queue-planner
+
+# Instalar dependências
+npm install
+
+# Configurar variáveis de ambiente
+cp env.example .env.local
+# Edite .env.local com suas credenciais do Supabase
+
+# Iniciar servidor de desenvolvimento
+npm run dev
+```
+
+O app estará disponível em `http://localhost:5173`
+
+## 🚀 Deploy (Netlify)
 
 1. Fork ou clone este repositório
 2. Conecte ao Netlify:
@@ -32,23 +59,13 @@ Sistema de visualização de tempos de fila de parques temáticos em Orlando. Ac
    - Conecte seu GitHub
    - Selecione o repositório
    - Build settings:
-     - Build command: (deixar vazio)
-     - Publish directory: `.`
-3. Configure as credenciais do Supabase na interface do app
-
-### Opção 2: GitHub Pages
-
-1. Vá em Settings → Pages
-2. Selecione a branch `main` e pasta `/root`
-3. O site estará disponível em `https://seu-usuario.github.io/disney-queue-planner`
+     - Build command: `npm run build`
+     - Publish directory: `dist`
+3. Configure as variáveis de ambiente no Netlify:
+   - `VITE_SUPABASE_URL`
+   - `VITE_SUPABASE_ANON_KEY`
 
 ## ⚙️ Configuração do Supabase
-
-As credenciais são configuradas no painel do Netlify, **nunca no código**:
-
-1. No Netlify, vá em **Site settings → Environment variables**
-2. Adicione as variáveis `SUPABASE_URL` e `SUPABASE_ANON_KEY`
-3. Faça um novo deploy (Deploys → Trigger deploy)
 
 **Onde encontrar as credenciais:**
 1. Acesse o [Supabase Dashboard](https://supabase.com/dashboard)
@@ -56,6 +73,40 @@ As credenciais são configuradas no painel do Netlify, **nunca no código**:
 3. Copie **Project URL** e **anon/public key**
 
 > ⚠️ **IMPORTANTE**: Use a chave `anon`, não a `service_role`!
+
+## 📁 Estrutura de Arquivos
+
+```
+park-queue-planner/
+├── src/
+│   ├── components/          # Componentes React
+│   │   ├── Header.tsx
+│   │   ├── ScheduleBar.tsx
+│   │   ├── QueueTable.tsx
+│   │   └── StatsPanel.tsx
+│   ├── hooks/               # React Query hooks
+│   │   ├── useParks.ts
+│   │   ├── useAvailableDates.ts
+│   │   ├── useParkSchedule.ts
+│   │   └── useWaitTimes.ts
+│   ├── lib/                 # Utilitários
+│   │   ├── supabase.ts
+│   │   ├── orlando-timezone.ts
+│   │   └── queue-utils.ts
+│   ├── types/               # TypeScript types
+│   ├── App.tsx
+│   ├── App.css
+│   └── main.tsx
+├── legacy/                  # Versão antiga (vanilla JS)
+├── index.html
+├── package.json
+├── tsconfig.json
+├── vite.config.ts
+├── netlify.toml
+├── BACKEND_DOCUMENTATION.md
+├── ROADMAP.md               # Bugs e features planejadas
+└── README.md
+```
 
 ## 📊 Schema do Banco de Dados
 
@@ -78,32 +129,17 @@ Veja a documentação completa em [BACKEND_DOCUMENTATION.md](./BACKEND_DOCUMENTA
                                                          │
                                                          ▼
                                                 ┌─────────────────┐
-                                                │    Frontend     │
+                                                │  React + Vite   │
                                                 │   (Netlify)     │
                                                 └─────────────────┘
 ```
 
 ## 💡 Dicas de Uso
 
-- **Filas verdes (0-30 min)**: Excelente hora para ir!
-- **Filas amarelas (30-60 min)**: Aceitável, considere Lightning Lane
-- **Filas vermelhas (60+ min)**: Evite, procure outro horário
+- **Filas verdes (≤20 min)**: Excelente hora para ir!
+- **Filas amarelas (36-59 min)**: Aceitável, considere Lightning Lane
+- **Filas vermelhas (≥80 min)**: Evite, procure outro horário
 - **Early Entry**: Horários antes da abertura oficial (destacados)
-
-## 📁 Estrutura de Arquivos
-
-```
-disney-queue-planner/
-├── index.html                    # App principal (HTML + CSS + JS)
-├── config.js                     # Gerado pelo build (não commitado)
-├── build.js                      # Script de build para Netlify
-├── netlify.toml                  # Configuração do Netlify
-├── .gitignore                    # Arquivos ignorados
-├── disney-queue-visualizer.html  # Protótipo original (mock data)
-├── BACKEND_DOCUMENTATION.md      # Documentação do schema
-├── FRONTEND_BACKLOG.md           # Backlog de features
-└── README.md                     # Este arquivo
-```
 
 ## 💰 Custos
 
