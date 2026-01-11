@@ -603,102 +603,6 @@
             50% { opacity: 0.5; }
         }
 
-        /* Config modal */
-        .config-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.85);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
-
-        .config-modal.hidden {
-            display: none;
-        }
-
-        .config-content {
-            background: var(--bg-secondary);
-            padding: 32px;
-            border-radius: 16px;
-            max-width: 500px;
-            width: 90%;
-        }
-
-        .config-content h2 {
-            margin-bottom: 8px;
-        }
-
-        .config-content p {
-            color: var(--text-secondary);
-            font-size: 14px;
-            margin-bottom: 24px;
-        }
-
-        .config-field {
-            margin-bottom: 16px;
-        }
-
-        .config-field label {
-            display: block;
-            font-size: 12px;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 8px;
-        }
-
-        .config-field input {
-            width: 100%;
-            padding: 12px 16px;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--bg-primary);
-            border-radius: 8px;
-            color: var(--text-primary);
-            font-family: 'Space Mono', monospace;
-            font-size: 13px;
-        }
-
-        .config-field input:focus {
-            outline: none;
-            border-color: var(--accent);
-        }
-
-        .config-actions {
-            display: flex;
-            gap: 12px;
-            margin-top: 24px;
-        }
-
-        .config-btn {
-            flex: 1;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-family: inherit;
-            font-weight: 500;
-            transition: all 0.2s ease;
-        }
-
-        .config-btn.primary {
-            background: var(--accent);
-            color: white;
-        }
-
-        .config-btn.primary:hover {
-            background: #4f46e5;
-        }
-
-        .config-btn.secondary {
-            background: var(--bg-tertiary);
-            color: var(--text-primary);
-        }
-
         @media (max-width: 768px) {
             .app-container {
                 padding: 16px;
@@ -822,28 +726,6 @@
         </div>
     </div>
 
-    <!-- Config Modal - shown if credentials not configured -->
-    <div class="config-modal hidden" id="configModal">
-        <div class="config-content">
-            <h2>⚙️ Configuração</h2>
-            <p>Insira as credenciais do Supabase para conectar aos dados. Você pode encontrar essas informações no Dashboard do Supabase → Settings → API.</p>
-            
-            <div class="config-field">
-                <label>Project URL</label>
-                <input type="text" id="configUrl" placeholder="https://xxxxx.supabase.co">
-            </div>
-            
-            <div class="config-field">
-                <label>Anon/Public Key</label>
-                <input type="text" id="configKey" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
-            </div>
-
-            <div class="config-actions">
-                <button class="config-btn primary" onclick="saveConfig()">Salvar e Conectar</button>
-            </div>
-        </div>
-    </div>
-
     <!-- Config externo gerado pelo build (Netlify) -->
     <script src="config.js" onerror="window.CONFIG = { SUPABASE_URL: '', SUPABASE_ANON_KEY: '' };"></script>
     
@@ -853,42 +735,13 @@
         // ============================================
         
         // CONFIG é carregado do config.js (gerado pelo Netlify build)
-        // Se não existir, será criado vazio pelo onerror acima
-        // Fallback: usuário pode configurar pelo modal (salva no localStorage)
+        // As variáveis de ambiente são configuradas no painel do Netlify
 
-        // Check localStorage for saved config, then CONFIG from build
         function getConfig() {
-            // 1. Primeiro tenta localStorage (configuração manual do usuário)
-            const savedUrl = localStorage.getItem('supabase_url');
-            const savedKey = localStorage.getItem('supabase_key');
-            
-            if (savedUrl && savedKey) {
-                return { url: savedUrl, key: savedKey };
-            }
-            
-            // 2. Depois tenta CONFIG do config.js (gerado pelo Netlify build)
             if (typeof CONFIG !== 'undefined' && CONFIG.SUPABASE_URL && CONFIG.SUPABASE_ANON_KEY) {
                 return { url: CONFIG.SUPABASE_URL, key: CONFIG.SUPABASE_ANON_KEY };
             }
-            
-            // 3. Sem configuração - mostrar modal
             return null;
-        }
-
-        function saveConfig() {
-            const url = document.getElementById('configUrl').value.trim();
-            const key = document.getElementById('configKey').value.trim();
-            
-            if (!url || !key) {
-                alert('Por favor, preencha ambos os campos.');
-                return;
-            }
-            
-            localStorage.setItem('supabase_url', url);
-            localStorage.setItem('supabase_key', key);
-            
-            document.getElementById('configModal').classList.add('hidden');
-            init();
         }
 
         function getHeaders() {
@@ -1396,9 +1249,7 @@
             const config = getConfig();
             
             if (!config) {
-                // Show config modal
-                document.getElementById('configModal').classList.remove('hidden');
-                hideLoading();
+                showError('Variáveis de ambiente não configuradas. Configure SUPABASE_URL e SUPABASE_ANON_KEY no Netlify.');
                 return;
             }
             
