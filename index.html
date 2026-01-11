@@ -60,6 +60,11 @@
             margin-bottom: 32px;
             flex-wrap: wrap;
             gap: 20px;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: var(--bg-primary);
+            padding: 16px 0;
         }
 
         .logo-section {
@@ -344,9 +349,9 @@
         }
 
         .attraction-avg {
-            font-family: 'Space Mono', monospace;
-            font-size: 11px;
-            font-weight: 600;
+            font-family: 'Lato', sans-serif;
+            font-size: 12px;
+            font-weight: 700;
             padding: 3px 10px;
             border-radius: 10px;
             margin-top: auto;
@@ -553,10 +558,10 @@
 
         /* Badge inside the cell - this is what gets colored */
         .queue-badge {
-            font-family: 'Space Mono', monospace;
-            font-size: 11px;
-            font-weight: 500;
-            padding: 4px 8px;
+            font-family: 'Lato', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            padding: 4px 10px;
             border-radius: 6px;
             min-width: 32px;
             text-align: center;
@@ -884,20 +889,6 @@
                         </select>
                     </div>
                 </div>
-                <div class="legend">
-                    <span class="legend-label">Fila:</span>
-                    <div class="legend-gradient"></div>
-                    <div class="legend-values">
-                        <span>≤20</span>
-                        <span>35</span>
-                        <span>60</span>
-                        <span>80+</span>
-                    </div>
-                </div>
-                <div class="last-updated hidden" id="lastUpdated">
-                    <span class="update-dot"></span>
-                    <span id="lastUpdateTime">--</span>
-                </div>
             </div>
         </header>
 
@@ -1184,25 +1175,6 @@
             document.getElementById('closeTime').textContent = formatTimeLocal(currentSchedule.close_time);
         }
 
-        function updateLastUpdated() {
-            const lastUpdatedEl = document.getElementById('lastUpdated');
-            const lastUpdateTimeEl = document.getElementById('lastUpdateTime');
-            
-            if (waitTimesData.length === 0) {
-                lastUpdatedEl.classList.add('hidden');
-                return;
-            }
-            
-            // Find the most recent recorded_at
-            const latestRecord = waitTimesData.reduce((latest, record) => {
-                return record.recorded_at > latest.recorded_at ? record : latest;
-            }, waitTimesData[0]);
-            
-            const orlandoTime = utcToOrlando(latestRecord.recorded_at);
-            lastUpdateTimeEl.textContent = `Última coleta: ${orlandoTime} (Orlando)`;
-            lastUpdatedEl.classList.remove('hidden');
-        }
-
         async function populateParkSelector() {
             const selector = document.getElementById('parkSelector');
             
@@ -1262,6 +1234,9 @@
             selector.disabled = true;
             selector.innerHTML = '<option value="">Carregando datas...</option>';
             
+            // Guardar a data anterior para tentar preservar
+            const previousDate = currentDate;
+            
             try {
                 availableDates = await loadAvailableDates(currentPark);
                 
@@ -1276,7 +1251,13 @@
                     .join('');
                 
                 selector.disabled = false;
-                currentDate = availableDates[0];
+                
+                // Preservar a data anterior se disponível no novo parque
+                if (previousDate && availableDates.includes(previousDate)) {
+                    currentDate = previousDate;
+                } else {
+                    currentDate = availableDates[0];
+                }
                 selector.value = currentDate;
                 
                 await loadData();
@@ -1304,7 +1285,6 @@
                 waitTimesData = waitTimes;
                 
                 updateScheduleBar();
-                updateLastUpdated();
                 
                 const parkInfo = parksData.find(p => p.id === currentPark);
                 updateParkSubtitle(parkInfo?.name);
