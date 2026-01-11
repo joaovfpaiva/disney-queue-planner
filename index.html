@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Disney Queue Planner</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏰</text></svg>">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg-primary: #0a0a0f;
@@ -17,12 +17,20 @@
             --accent: #6366f1;
             --accent-glow: rgba(99, 102, 241, 0.3);
             
-            /* Queue time colors - 5 tiers, softer palette */
-            --queue-low: #4ade80;      /* < 20 min - green */
-            --queue-medium: #a3e635;   /* 20-39 min - lime */
-            --queue-high: #fbbf24;     /* 40-69 min - amber */
-            --queue-very-high: #f97316; /* 70-99 min - orange */
-            --queue-extreme: #ef4444;  /* 100+ min - red */
+            /* Queue time colors - Pastel palette, 5 tiers */
+            /* Text colors - darker for good contrast */
+            --queue-text-low: #14532d;      /* dark green */
+            --queue-text-medium: #365314;   /* dark lime */
+            --queue-text-normal: #713f12;   /* dark amber */
+            --queue-text-high: #7c2d12;     /* dark orange */
+            --queue-text-extreme: #7f1d1d;  /* dark red */
+            
+            /* Background colors - soft pastels */
+            --queue-low: #86efac;           /* ≤20 min - verde escuro pastel */
+            --queue-medium: #bef264;        /* 21-35 min - verde claro pastel */
+            --queue-normal-bg: #fef08a;     /* 36-59 min - amarelo leve */
+            --queue-high: #fdba74;          /* 60-79 min - laranja leve */
+            --queue-extreme: #fca5a5;       /* ≥80 min - vermelho leve */
         }
 
         * {
@@ -32,7 +40,7 @@
         }
 
         body {
-            font-family: 'Outfit', sans-serif;
+            font-family: 'Lato', -apple-system, BlinkMacSystemFont, sans-serif;
             background: var(--bg-primary);
             color: var(--text-primary);
             min-height: 100vh;
@@ -175,10 +183,17 @@
         }
 
         .legend-gradient {
-            width: 150px;
-            height: 12px;
-            border-radius: 6px;
-            background: linear-gradient(90deg, var(--queue-low), var(--queue-medium), var(--queue-high), var(--queue-very-high), var(--queue-extreme));
+            width: 160px;
+            height: 14px;
+            border-radius: 7px;
+            background: linear-gradient(90deg, 
+                var(--queue-low) 0%, 
+                var(--queue-medium) 25%, 
+                var(--queue-normal-bg) 50%, 
+                var(--queue-high) 75%, 
+                var(--queue-extreme) 100%
+            );
+            border: 1px solid var(--bg-primary);
         }
 
         .legend-values {
@@ -256,9 +271,9 @@
         }
 
         .queue-table th.attraction-col {
-            width: 170px;
-            min-width: 170px;
-            max-width: 170px;
+            width: 160px;
+            min-width: 160px;
+            max-width: 160px;
             vertical-align: top;
             padding: 0;
         }
@@ -311,31 +326,38 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 4px;
-            padding: 10px 6px;
-            width: 170px;
+            gap: 6px;
+            padding: 10px 6px 8px;
+            width: 160px;
         }
 
         .attraction-name {
-            font-weight: 500;
+            font-weight: 400;
             color: var(--text-primary);
             font-size: 11px;
             text-align: center;
-            line-height: 1.2;
+            line-height: 1.3;
             width: 100%;
-            /* Allow wrapping for longer names */
-            white-space: normal;
-            word-wrap: break-word;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .attraction-avg {
             font-family: 'Space Mono', monospace;
-            font-size: 10px;
+            font-size: 11px;
             font-weight: 600;
-            padding: 2px 6px;
-            border-radius: 4px;
-            color: white;
+            padding: 3px 10px;
+            border-radius: 10px;
+            margin-top: auto;
         }
+        
+        .attraction-avg.q-low { background: var(--queue-low); color: var(--queue-text-low); }
+        .attraction-avg.q-medium { background: var(--queue-medium); color: var(--queue-text-medium); }
+        .attraction-avg.q-normal { background: var(--queue-normal-bg); color: var(--queue-text-normal); }
+        .attraction-avg.q-high { background: var(--queue-high); color: var(--queue-text-high); }
+        .attraction-avg.q-extreme { background: var(--queue-extreme); color: var(--queue-text-extreme); }
+        .attraction-avg.closed { background: var(--bg-tertiary); color: var(--text-muted); }
         
         /* Filter dropdown */
         .filter-container {
@@ -469,10 +491,16 @@
         .filter-item-avg {
             font-family: 'Space Mono', monospace;
             font-size: 11px;
-            padding: 2px 6px;
-            border-radius: 4px;
-            color: white;
+            padding: 3px 8px;
+            border-radius: 10px;
         }
+        
+        .filter-item-avg.q-low { background: var(--queue-low); color: var(--queue-text-low); }
+        .filter-item-avg.q-medium { background: var(--queue-medium); color: var(--queue-text-medium); }
+        .filter-item-avg.q-normal { background: var(--queue-normal-bg); color: var(--queue-text-normal); }
+        .filter-item-avg.q-high { background: var(--queue-high); color: var(--queue-text-high); }
+        .filter-item-avg.q-extreme { background: var(--queue-extreme); color: var(--queue-text-extreme); }
+        .filter-item-avg.closed { background: var(--bg-tertiary); color: var(--text-muted); }
         
         .filter-panel-footer {
             display: flex;
@@ -510,45 +538,62 @@
 
         .queue-cell {
             width: 100%;
-            height: 36px;
+            height: 32px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-family: 'Space Mono', monospace;
-            font-size: 12px;
-            font-weight: 500;
-            color: white;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
             cursor: pointer;
             transition: all 0.15s ease;
             position: relative;
         }
 
         .queue-cell:hover {
-            transform: scale(1.1);
-            /* z-index: 10; */ 
-            /* box-shadow: 0 4px 20px rgba(0,0,0,0.4); */
-            /* border-radius: 4px; */
+            background: rgba(255,255,255,0.03);
         }
 
+        /* Badge inside the cell - this is what gets colored */
+        .queue-badge {
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            font-weight: 500;
+            padding: 4px 8px;
+            border-radius: 6px;
+            min-width: 32px;
+            text-align: center;
+        }
 
-        .queue-cell.closed {
-            background: var(--bg-tertiary);
+        .queue-cell.closed .queue-badge {
+            background: transparent;
             color: var(--text-muted);
         }
 
-        .queue-cell.down {
-            background: #7c2d12;
-            color: #fbbf24;
+        .queue-cell.down .queue-badge {
+            background: #fef3c7;
+            color: #92400e;
         }
 
-        /* Queue time color classes */
-        /* 5 tier color system */
-        .q-low { background: var(--queue-low); }        /* < 20 min */
-        .q-medium { background: var(--queue-medium); }  /* 20-39 min */
-        .q-high { background: var(--queue-high); }      /* 40-69 min */
-        .q-very-high { background: var(--queue-very-high); } /* 70-99 min */
-        .q-extreme { background: var(--queue-extreme); } /* 100+ min */
+        /* Queue time color classes - applied to badge */
+        .q-low .queue-badge { 
+            background: var(--queue-low); 
+            color: var(--queue-text-low);
+        }
+        .q-medium .queue-badge { 
+            background: var(--queue-medium); 
+            color: var(--queue-text-medium);
+        }
+        .q-normal .queue-badge { 
+            background: var(--queue-normal-bg); 
+            color: var(--queue-text-normal);
+        }
+        .q-high .queue-badge { 
+            background: var(--queue-high); 
+            color: var(--queue-text-high);
+        }
+        .q-extreme .queue-badge { 
+            background: var(--queue-extreme); 
+            color: var(--queue-text-extreme);
+            font-weight: 600;
+        }
 
         /* Loading & State overlays */
         .loading-overlay {
@@ -843,10 +888,10 @@
                     <span class="legend-label">Fila:</span>
                     <div class="legend-gradient"></div>
                     <div class="legend-values">
-                        <span>&lt;20</span>
-                        <span>40</span>
-                        <span>70</span>
-                        <span>100+</span>
+                        <span>≤20</span>
+                        <span>35</span>
+                        <span>60</span>
+                        <span>80+</span>
                     </div>
                 </div>
                 <div class="last-updated hidden" id="lastUpdated">
@@ -1053,11 +1098,11 @@
 
         function getQueueClass(waitTime) {
             if (waitTime === null) return 'closed';
-            if (waitTime < 20) return 'q-low';        // < 20 min
-            if (waitTime < 40) return 'q-medium';     // 20-39 min
-            if (waitTime < 70) return 'q-high';       // 40-69 min
-            if (waitTime < 100) return 'q-very-high'; // 70-99 min
-            return 'q-extreme';                       // 100+ min
+            if (waitTime <= 20) return 'q-low';        // ≤20 min - muito bom (verde escuro)
+            if (waitTime <= 35) return 'q-medium';     // 21-35 min - bom (verde claro)
+            if (waitTime <= 59) return 'q-normal';     // 36-59 min - ok (amarelo leve)
+            if (waitTime <= 79) return 'q-high';       // 60-79 min - alto (laranja leve)
+            return 'q-extreme';                        // ≥80 min - evitar (vermelho)
         }
 
         function getStatusClass(status) {
@@ -1387,7 +1432,7 @@
                 const avgClass = attraction.avgWait !== null ? getQueueClass(attraction.avgWait) : 'closed';
                 const avgText = attraction.avgWait !== null ? `${attraction.avgWait}` : '—';
                 headerHTML += `
-                    <th class="attraction-col" title="${attraction.name} (média: ${attraction.avgWait ?? '—'} min)">
+                    <th class="attraction-col" title="${attraction.name}">
                         <div class="attraction-header">
                             <div class="attraction-name">${attraction.name}</div>
                             <div class="attraction-avg ${avgClass}">${avgText}</div>
@@ -1418,14 +1463,14 @@
                     const data = attraction.times[time];
                     
                     if (!data) {
-                        bodyHTML += `<td><div class="queue-cell closed">-</div></td>`;
+                        bodyHTML += `<td><div class="queue-cell closed"><span class="queue-badge">-</span></div></td>`;
                     } else if (data.status === 'CLOSED') {
-                        bodyHTML += `<td><div class="queue-cell closed">—</div></td>`;
+                        bodyHTML += `<td><div class="queue-cell closed"><span class="queue-badge">—</span></div></td>`;
                     } else if (data.status === 'DOWN') {
-                        bodyHTML += `<td><div class="queue-cell down">⚠</div></td>`;
+                        bodyHTML += `<td><div class="queue-cell down"><span class="queue-badge">⚠</span></div></td>`;
                     } else {
                         const colorClass = getQueueClass(data.wait);
-                        bodyHTML += `<td><div class="queue-cell ${colorClass}">${data.wait}</div></td>`;
+                        bodyHTML += `<td><div class="queue-cell ${colorClass}"><span class="queue-badge">${data.wait}</span></div></td>`;
                     }
                 });
                 
