@@ -250,15 +250,15 @@
             background: var(--bg-tertiary);
             text-align: center;
             padding: 14px 12px;
-            width: 70px;
-            min-width: 70px;
-            max-width: 70px;
+            width: 100px;
+            min-width: 100px;
+            max-width: 100px;
         }
 
         .queue-table th.attraction-col {
-            width: 50px;
-            min-width: 50px;
-            max-width: 50px;
+            width: 250px;
+            min-width: 250px;
+            max-width: 250px;
             vertical-align: top;
             padding: 0;
         }
@@ -274,9 +274,9 @@
             padding: 8px 12px;
             text-align: center;
             white-space: nowrap;
-            width: 70px;
-            min-width: 70px;
-            max-width: 70px;
+            width: 100px;
+            min-width: 100px;
+            max-width: 100px;
         }
 
         .queue-table td.time-cell.hour-mark {
@@ -311,53 +311,53 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 4px;
-            padding: 8px 2px;
-            width: 50px;
+            gap: 6px;
+            padding: 12px 8px;
+            width: 250px;
         }
 
         .attraction-name {
             font-weight: 500;
             color: var(--text-primary);
-            font-size: 9px;
+            font-size: 12px;
             text-align: center;
-            line-height: 1.2;
+            line-height: 1.3;
             width: 100%;
-            /* Truncate to single line with ellipsis */
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            /* Allow wrapping for longer names */
+            white-space: normal;
+            word-wrap: break-word;
         }
 
         .attraction-avg {
             font-family: 'Space Mono', monospace;
-            font-size: 9px;
+            font-size: 11px;
             font-weight: 600;
-            padding: 2px 4px;
-            border-radius: 3px;
+            padding: 3px 8px;
+            border-radius: 4px;
             color: white;
         }
         
-        /* Filter dropdown */
+        /* Filter multi-select */
         .filter-container {
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             gap: 12px;
             margin-bottom: 16px;
             flex-wrap: wrap;
         }
         
         .filter-select {
-            min-width: 280px;
-            padding: 12px 40px 12px 16px;
+            min-width: 350px;
+            max-width: 500px;
+            height: 200px;
+            padding: 8px;
             background: var(--bg-secondary);
             border: 1px solid var(--bg-tertiary);
             border-radius: 10px;
             color: var(--text-primary);
             font-family: inherit;
-            font-size: 14px;
+            font-size: 13px;
             cursor: pointer;
-            appearance: none;
             transition: all 0.2s ease;
         }
         
@@ -371,22 +371,49 @@
             box-shadow: 0 0 0 3px var(--accent-glow);
         }
         
-        .filter-wrapper {
-            position: relative;
+        .filter-select option {
+            padding: 8px 12px;
+            border-radius: 4px;
+            margin: 2px 0;
         }
         
-        .filter-wrapper::after {
-            content: '';
-            position: absolute;
-            right: 16px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 0;
-            height: 0;
-            border-left: 5px solid transparent;
-            border-right: 5px solid transparent;
-            border-top: 6px solid var(--text-secondary);
-            pointer-events: none;
+        .filter-select option:checked {
+            background: var(--accent);
+            color: white;
+        }
+        
+        .filter-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .filter-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .filter-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .filter-btn {
+            padding: 8px 16px;
+            background: var(--bg-tertiary);
+            border: none;
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .filter-btn:hover {
+            background: var(--accent);
         }
         
         .filter-count {
@@ -395,6 +422,7 @@
             padding: 8px 12px;
             background: var(--bg-tertiary);
             border-radius: 8px;
+            align-self: flex-start;
         }
 
         .queue-cell {
@@ -765,9 +793,13 @@
 
         <div class="filter-container hidden" id="filterContainer">
             <div class="filter-wrapper">
-                <select class="filter-select" id="filterSelect">
-                    <option value="">Todas as atrações</option>
+                <span class="filter-label">Filtrar atrações (Ctrl+Click para múltiplas)</span>
+                <select class="filter-select" id="filterSelect" multiple>
                 </select>
+                <div class="filter-actions">
+                    <button class="filter-btn" onclick="selectAllAttractions()">Selecionar Todas</button>
+                    <button class="filter-btn" onclick="clearSelection()">Limpar Seleção</button>
+                </div>
             </div>
             <span class="filter-count" id="filterCount">0 atrações</span>
         </div>
@@ -1153,7 +1185,7 @@
         }
 
         // Filter state
-        let currentFilter = '';
+        let currentFilter = []; // Array of selected attraction names
         let allAttractions = [];
 
         function transformToGrid(rawData) {
@@ -1220,19 +1252,23 @@
             document.getElementById('filterContainer').classList.remove('hidden');
             populateFilterDropdown(attractions);
             
-            // Reset filter
-            currentFilter = '';
-            document.getElementById('filterSelect').value = '';
+            // Initialize filter with all selected
+            currentFilter = attractions.map(a => a.name);
             
             // Render with current filter
             renderFilteredTable(attractions, timeSlots);
         }
         
         function renderFilteredTable(attractions, timeSlots) {
-            // Apply filter (exact match from dropdown)
-            const filteredAttractions = currentFilter 
-                ? attractions.filter(a => a.name === currentFilter)
-                : attractions;
+            // Apply filter (multi-select)
+            let filteredAttractions;
+            if (Array.isArray(currentFilter) && currentFilter.length > 0) {
+                filteredAttractions = attractions.filter(a => currentFilter.includes(a.name));
+            } else if (Array.isArray(currentFilter) && currentFilter.length === 0) {
+                filteredAttractions = []; // Nothing selected
+            } else {
+                filteredAttractions = attractions; // Show all
+            }
             
             // Update count
             document.getElementById('filterCount').textContent = 
@@ -1310,29 +1346,55 @@
             }
         }
         
-        // Populate filter dropdown
+        // Populate filter dropdown (sorted by avg wait time)
         function populateFilterDropdown(attractions) {
             const select = document.getElementById('filterSelect');
-            let html = '<option value="">Todas as atrações</option>';
             
-            // Sort by name for dropdown
-            const sorted = [...attractions].sort((a, b) => a.name.localeCompare(b.name));
+            // Sort by avg wait time (highest first) - same as table order
+            const sorted = [...attractions].sort((a, b) => {
+                if (a.avgWait === null && b.avgWait === null) return 0;
+                if (a.avgWait === null) return 1;
+                if (b.avgWait === null) return -1;
+                return b.avgWait - a.avgWait;
+            });
+            
+            let html = '';
             sorted.forEach(attr => {
-                const avgText = attr.avgWait !== null ? ` (${attr.avgWait} min)` : '';
-                html += `<option value="${attr.name}">${attr.name}${avgText}</option>`;
+                const avgText = attr.avgWait !== null ? ` (${attr.avgWait} min)` : ' (—)';
+                html += `<option value="${attr.name}" selected>${attr.name}${avgText}</option>`;
             });
             
             select.innerHTML = html;
         }
         
-        // Filter event listener
-        document.getElementById('filterSelect').addEventListener('change', (e) => {
-            currentFilter = e.target.value;
+        // Select all attractions
+        function selectAllAttractions() {
+            const select = document.getElementById('filterSelect');
+            Array.from(select.options).forEach(opt => opt.selected = true);
+            applyFilter();
+        }
+        
+        // Clear selection
+        function clearSelection() {
+            const select = document.getElementById('filterSelect');
+            Array.from(select.options).forEach(opt => opt.selected = false);
+            applyFilter();
+        }
+        
+        // Apply filter based on selection
+        function applyFilter() {
+            const select = document.getElementById('filterSelect');
+            const selectedOptions = Array.from(select.selectedOptions).map(opt => opt.value);
+            currentFilter = selectedOptions;
+            
             if (allAttractions.length > 0) {
                 const { timeSlots } = transformToGrid(waitTimesData);
                 renderFilteredTable(allAttractions, timeSlots);
             }
-        });
+        }
+        
+        // Filter event listener
+        document.getElementById('filterSelect').addEventListener('change', applyFilter);
 
         function updateStats(data) {
             // Calculate summary stats
