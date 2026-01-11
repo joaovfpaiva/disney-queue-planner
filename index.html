@@ -250,13 +250,15 @@
             background: var(--bg-tertiary);
             text-align: center;
             padding: 14px 12px;
-            min-width: 80px;
+            width: 70px;
+            min-width: 70px;
+            max-width: 70px;
         }
 
         .queue-table th.attraction-col {
-            width: 90px;
-            min-width: 90px;
-            max-width: 90px;
+            width: 50px;
+            min-width: 50px;
+            max-width: 50px;
             vertical-align: top;
             padding: 0;
         }
@@ -272,6 +274,9 @@
             padding: 8px 12px;
             text-align: center;
             white-space: nowrap;
+            width: 70px;
+            min-width: 70px;
+            max-width: 70px;
         }
 
         .queue-table td.time-cell.hour-mark {
@@ -306,15 +311,15 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 6px;
-            padding: 10px 6px;
-            width: 90px;
+            gap: 4px;
+            padding: 8px 2px;
+            width: 50px;
         }
 
         .attraction-name {
             font-weight: 500;
             color: var(--text-primary);
-            font-size: 11px;
+            font-size: 9px;
             text-align: center;
             line-height: 1.2;
             width: 100%;
@@ -326,14 +331,14 @@
 
         .attraction-avg {
             font-family: 'Space Mono', monospace;
-            font-size: 10px;
+            font-size: 9px;
             font-weight: 600;
-            padding: 2px 6px;
-            border-radius: 4px;
+            padding: 2px 4px;
+            border-radius: 3px;
             color: white;
         }
         
-        /* Filter input */
+        /* Filter dropdown */
         .filter-container {
             display: flex;
             align-items: center;
@@ -342,44 +347,45 @@
             flex-wrap: wrap;
         }
         
-        .filter-input {
-            flex: 1;
-            min-width: 200px;
-            max-width: 400px;
-            padding: 12px 16px;
-            padding-left: 40px;
+        .filter-select {
+            min-width: 280px;
+            padding: 12px 40px 12px 16px;
             background: var(--bg-secondary);
             border: 1px solid var(--bg-tertiary);
             border-radius: 10px;
             color: var(--text-primary);
             font-family: inherit;
             font-size: 14px;
+            cursor: pointer;
+            appearance: none;
             transition: all 0.2s ease;
         }
         
-        .filter-input:focus {
+        .filter-select:hover {
+            border-color: var(--accent);
+        }
+        
+        .filter-select:focus {
             outline: none;
             border-color: var(--accent);
             box-shadow: 0 0 0 3px var(--accent-glow);
         }
         
-        .filter-input::placeholder {
-            color: var(--text-muted);
-        }
-        
         .filter-wrapper {
             position: relative;
-            flex: 1;
-            min-width: 200px;
-            max-width: 400px;
         }
         
-        .filter-icon {
+        .filter-wrapper::after {
+            content: '';
             position: absolute;
-            left: 14px;
+            right: 16px;
             top: 50%;
             transform: translateY(-50%);
-            color: var(--text-muted);
+            width: 0;
+            height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-top: 6px solid var(--text-secondary);
             pointer-events: none;
         }
         
@@ -414,28 +420,6 @@
             border-radius: 4px;
         }
 
-        .queue-cell::after {
-            content: attr(data-tooltip);
-            position: absolute;
-            bottom: calc(100% + 8px);
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-size: 12px;
-            white-space: nowrap;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.2s ease;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.4);
-            z-index: 100;
-        }
-
-        .queue-cell:hover::after {
-            opacity: 1;
-        }
 
         .queue-cell.closed {
             background: var(--bg-tertiary);
@@ -781,8 +765,9 @@
 
         <div class="filter-container hidden" id="filterContainer">
             <div class="filter-wrapper">
-                <span class="filter-icon">🔍</span>
-                <input type="text" class="filter-input" id="filterInput" placeholder="Filtrar atrações por nome...">
+                <select class="filter-select" id="filterSelect">
+                    <option value="">Todas as atrações</option>
+                </select>
             </div>
             <span class="filter-count" id="filterCount">0 atrações</span>
         </div>
@@ -1231,18 +1216,22 @@
             // Store attractions for filtering
             allAttractions = attractions;
             
-            // Show filter
+            // Show filter and populate dropdown
             document.getElementById('filterContainer').classList.remove('hidden');
+            populateFilterDropdown(attractions);
+            
+            // Reset filter
+            currentFilter = '';
+            document.getElementById('filterSelect').value = '';
             
             // Render with current filter
             renderFilteredTable(attractions, timeSlots);
         }
         
         function renderFilteredTable(attractions, timeSlots) {
-            // Apply filter
-            const filter = currentFilter.toLowerCase().trim();
-            const filteredAttractions = filter 
-                ? attractions.filter(a => a.name.toLowerCase().includes(filter))
+            // Apply filter (exact match from dropdown)
+            const filteredAttractions = currentFilter 
+                ? attractions.filter(a => a.name === currentFilter)
                 : attractions;
             
             // Update count
@@ -1296,15 +1285,14 @@
                     const data = attraction.times[time];
                     
                     if (!data) {
-                        bodyHTML += `<td><div class="queue-cell closed" data-tooltip="Sem dados">-</div></td>`;
+                        bodyHTML += `<td><div class="queue-cell closed">-</div></td>`;
                     } else if (data.status === 'CLOSED') {
-                        bodyHTML += `<td><div class="queue-cell closed" data-tooltip="${attraction.name} às ${time}: Fechado">—</div></td>`;
+                        bodyHTML += `<td><div class="queue-cell closed">—</div></td>`;
                     } else if (data.status === 'DOWN') {
-                        bodyHTML += `<td><div class="queue-cell down" data-tooltip="${attraction.name} às ${time}: Parado">⚠</div></td>`;
+                        bodyHTML += `<td><div class="queue-cell down">⚠</div></td>`;
                     } else {
                         const colorClass = getQueueClass(data.wait);
-                        const tooltip = `${attraction.name} às ${time}: ${data.wait} min`;
-                        bodyHTML += `<td><div class="queue-cell ${colorClass}" data-tooltip="${tooltip}">${data.wait}</div></td>`;
+                        bodyHTML += `<td><div class="queue-cell ${colorClass}">${data.wait}</div></td>`;
                     }
                 });
                 
@@ -1322,8 +1310,23 @@
             }
         }
         
+        // Populate filter dropdown
+        function populateFilterDropdown(attractions) {
+            const select = document.getElementById('filterSelect');
+            let html = '<option value="">Todas as atrações</option>';
+            
+            // Sort by name for dropdown
+            const sorted = [...attractions].sort((a, b) => a.name.localeCompare(b.name));
+            sorted.forEach(attr => {
+                const avgText = attr.avgWait !== null ? ` (${attr.avgWait} min)` : '';
+                html += `<option value="${attr.name}">${attr.name}${avgText}</option>`;
+            });
+            
+            select.innerHTML = html;
+        }
+        
         // Filter event listener
-        document.getElementById('filterInput').addEventListener('input', (e) => {
+        document.getElementById('filterSelect').addEventListener('change', (e) => {
             currentFilter = e.target.value;
             if (allAttractions.length > 0) {
                 const { timeSlots } = transformToGrid(waitTimesData);
