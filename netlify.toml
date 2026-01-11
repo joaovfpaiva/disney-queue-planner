@@ -1,0 +1,13 @@
+# Netlify Configuration
+# As variáveis de ambiente são configuradas no painel do Netlify:
+# Site settings → Environment variables
+
+[build]
+  publish = "."
+  command = "node build.js"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"

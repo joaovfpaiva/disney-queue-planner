@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Disney Queue Planner</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-tertiary: #1a1a25;
+            --text-primary: #f0f0f5;
+            --text-secondary: #8888a0;
+            --text-muted: #555566;
+            --accent: #6366f1;
+            --accent-glow: rgba(99, 102, 241, 0.3);
+            
+            /* Queue time colors - gradient from green to red */
+            --queue-0: #10b981;
+            --queue-15: #22c55e;
+            --queue-30: #84cc16;
+            --queue-45: #eab308;
+            --queue-60: #f97316;
+            --queue-75: #ef4444;
+            --queue-90: #dc2626;
+            --queue-120: #991b1b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: auto;
+        }
+
+        .app-container {
+            padding: 32px 40px;
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .logo {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--accent), #a855f7);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 20px var(--accent-glow);
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+
+        h1 span {
+            color: var(--text-secondary);
+            font-weight: 400;
+        }
+
+        .controls {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .selector-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .selector-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 500;
+        }
+
+        .custom-select {
+            position: relative;
+            min-width: 220px;
+        }
+
+        .custom-select select {
+            width: 100%;
+            padding: 12px 40px 12px 16px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--bg-tertiary);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            appearance: none;
+            transition: all 0.2s ease;
+        }
+
+        .custom-select select:hover {
+            border-color: var(--accent);
+        }
+
+        .custom-select select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        .custom-select::after {
+            content: '';
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 0;
+            height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-top: 6px solid var(--text-secondary);
+            pointer-events: none;
+        }
+
+        .custom-select select option {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            padding: 12px;
+        }
+
+        .legend {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--bg-secondary);
+            border-radius: 10px;
+        }
+
+        .legend-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .legend-gradient {
+            width: 120px;
+            height: 12px;
+            border-radius: 6px;
+            background: linear-gradient(90deg, var(--queue-0), var(--queue-30), var(--queue-60), var(--queue-90), var(--queue-120));
+        }
+
+        .legend-values {
+            display: flex;
+            gap: 4px;
+            font-size: 11px;
+            color: var(--text-muted);
+            font-family: 'Space Mono', monospace;
+        }
+
+        .table-container {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .queue-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .queue-table thead {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .queue-table th {
+            background: var(--bg-tertiary);
+            padding: 14px 8px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            border-bottom: 2px solid var(--bg-primary);
+            white-space: nowrap;
+        }
+
+        .queue-table th:first-child {
+            position: sticky;
+            left: 0;
+            z-index: 20;
+            background: var(--bg-tertiary);
+            text-align: left;
+            padding-left: 20px;
+            min-width: 200px;
+        }
+
+        .queue-table th.time-header {
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            min-width: 48px;
+            padding: 14px 4px;
+        }
+
+        .queue-table th.time-header.hour-mark {
+            border-left: 1px solid var(--text-muted);
+            color: var(--text-primary);
+            font-weight: 700;
+        }
+
+        .queue-table tbody tr {
+            border-bottom: 1px solid var(--bg-primary);
+        }
+
+        .queue-table tbody tr:hover {
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        .queue-table td {
+            padding: 0;
+            text-align: center;
+            position: relative;
+        }
+
+        .queue-table td:first-child {
+            position: sticky;
+            left: 0;
+            background: var(--bg-secondary);
+            z-index: 5;
+            padding: 16px 20px;
+            text-align: left;
+        }
+
+        .queue-table tbody tr:hover td:first-child {
+            background: var(--bg-tertiary);
+        }
+
+        .attraction-name {
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .attraction-type {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .queue-cell {
+            width: 100%;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            font-weight: 500;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            cursor: pointer;
+            transition: all 0.15s ease;
+            position: relative;
+        }
+
+        .queue-cell:hover {
+            transform: scale(1.1);
+            z-index: 10;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            border-radius: 4px;
+        }
+
+        .queue-cell::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+            z-index: 100;
+        }
+
+        .queue-cell:hover::after {
+            opacity: 1;
+        }
+
+        /* Queue time color classes */
+        .q-0 { background: var(--queue-0); }
+        .q-5 { background: color-mix(in srgb, var(--queue-0) 66%, var(--queue-15)); }
+        .q-10 { background: color-mix(in srgb, var(--queue-0) 33%, var(--queue-15)); }
+        .q-15 { background: var(--queue-15); }
+        .q-20 { background: color-mix(in srgb, var(--queue-15) 66%, var(--queue-30)); }
+        .q-25 { background: color-mix(in srgb, var(--queue-15) 33%, var(--queue-30)); }
+        .q-30 { background: var(--queue-30); }
+        .q-35 { background: color-mix(in srgb, var(--queue-30) 66%, var(--queue-45)); }
+        .q-40 { background: color-mix(in srgb, var(--queue-30) 33%, var(--queue-45)); }
+        .q-45 { background: var(--queue-45); }
+        .q-50 { background: color-mix(in srgb, var(--queue-45) 66%, var(--queue-60)); }
+        .q-55 { background: color-mix(in srgb, var(--queue-45) 33%, var(--queue-60)); }
+        .q-60 { background: var(--queue-60); }
+        .q-70 { background: color-mix(in srgb, var(--queue-60) 50%, var(--queue-75)); }
+        .q-75 { background: var(--queue-75); }
+        .q-80 { background: color-mix(in srgb, var(--queue-75) 66%, var(--queue-90)); }
+        .q-90 { background: var(--queue-90); }
+        .q-100 { background: color-mix(in srgb, var(--queue-90) 50%, var(--queue-120)); }
+        .q-120 { background: var(--queue-120); }
+
+        .stats-panel {
+            margin-top: 24px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .stat-card {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .stat-card h3 {
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .best-times {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .best-time-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+        }
+
+        .best-time-attraction {
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .best-time-value {
+            font-family: 'Space Mono', monospace;
+            font-size: 13px;
+            padding: 4px 10px;
+            background: var(--queue-0);
+            color: white;
+            border-radius: 6px;
+        }
+
+        .summary-stats {
+            display: flex;
+            gap: 20px;
+        }
+
+        .summary-stat {
+            flex: 1;
+            text-align: center;
+            padding: 16px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+        }
+
+        .summary-stat-value {
+            font-size: 32px;
+            font-weight: 600;
+            color: var(--accent);
+            font-family: 'Space Mono', monospace;
+        }
+
+        .summary-stat-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .time-highlight {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .time-highlight.active {
+            display: flex;
+        }
+
+        .highlight-content {
+            background: var(--bg-secondary);
+            padding: 32px;
+            border-radius: 20px;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .highlight-content h2 {
+            margin-bottom: 20px;
+        }
+
+        .highlight-close {
+            margin-top: 20px;
+            padding: 12px 24px;
+            background: var(--accent);
+            border: none;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 500;
+        }
+
+        @media (max-width: 768px) {
+            .app-container {
+                padding: 16px;
+            }
+            
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .controls {
+                width: 100%;
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .park-selector {
+                overflow-x: auto;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <div class="logo-section">
+                <div class="logo">🏰</div>
+                <h1>Queue Planner <span>/ Disney World</span></h1>
+            </div>
+            <div class="controls">
+                <div class="selector-group">
+                    <span class="selector-label">Parque</span>
+                    <div class="custom-select">
+                        <select id="parkSelector">
+                            <optgroup label="Walt Disney World">
+                                <option value="magic-kingdom">Magic Kingdom</option>
+                                <option value="epcot">EPCOT</option>
+                                <option value="hollywood-studios">Hollywood Studios</option>
+                                <option value="animal-kingdom">Animal Kingdom</option>
+                            </optgroup>
+                            <optgroup label="Universal Orlando">
+                                <option value="universal-studios">Universal Studios</option>
+                                <option value="islands-adventure">Islands of Adventure</option>
+                                <option value="epic-universe">Epic Universe</option>
+                            </optgroup>
+                            <optgroup label="Outros">
+                                <option value="seaworld">SeaWorld Orlando</option>
+                                <option value="busch-gardens">Busch Gardens Tampa</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                </div>
+                <div class="selector-group">
+                    <span class="selector-label">Data</span>
+                    <div class="custom-select">
+                        <select id="dateSelector"></select>
+                    </div>
+                </div>
+                <div class="legend">
+                    <span class="legend-label">Tempo de fila:</span>
+                    <div class="legend-gradient"></div>
+                    <div class="legend-values">
+                        <span>0</span>
+                        <span>60</span>
+                        <span>120+</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="table-container">
+            <table class="queue-table" id="queueTable">
+                <thead id="tableHead"></thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+
+        <div class="stats-panel">
+            <div class="stat-card">
+                <h3>📊 Resumo do Dia</h3>
+                <div class="summary-stats" id="summaryStats"></div>
+            </div>
+            <div class="stat-card">
+                <h3>⏰ Melhores Horários</h3>
+                <div class="best-times" id="bestTimes"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Park data with attractions
+        const parksData = {
+            'magic-kingdom': {
+                name: 'Magic Kingdom',
+                hours: { open: 9, close: 22 },
+                attractions: [
+                    { name: 'Seven Dwarfs Mine Train', type: 'Mountain Coaster', baseWait: 85, variance: 45, peakHours: [11, 12, 13, 14, 19, 20] },
+                    { name: 'Space Mountain', type: 'Thrill Ride', baseWait: 55, variance: 35, peakHours: [12, 13, 14, 15, 20, 21] },
+                    { name: 'Big Thunder Mountain', type: 'Thrill Ride', baseWait: 50, variance: 30, peakHours: [11, 12, 13, 18, 19] },
+                    { name: 'Splash Mountain', type: 'Water Ride', baseWait: 60, variance: 40, peakHours: [12, 13, 14, 15, 16] },
+                    { name: 'Pirates of the Caribbean', type: 'Dark Ride', baseWait: 35, variance: 25, peakHours: [11, 12, 13, 14] },
+                    { name: 'Haunted Mansion', type: 'Dark Ride', baseWait: 40, variance: 25, peakHours: [12, 13, 18, 19, 20] },
+                    { name: 'Jungle Cruise', type: 'Boat Ride', baseWait: 45, variance: 30, peakHours: [11, 12, 13, 14, 15] },
+                    { name: 'Peter Pan\'s Flight', type: 'Dark Ride', baseWait: 70, variance: 35, peakHours: [10, 11, 12, 13, 14, 19] },
+                    { name: 'TRON Lightcycle Run', type: 'Thrill Ride', baseWait: 95, variance: 40, peakHours: [10, 11, 12, 19, 20, 21] },
+                    { name: 'Buzz Lightyear', type: 'Interactive Ride', baseWait: 30, variance: 20, peakHours: [11, 12, 13, 14] }
+                ]
+            },
+            'epcot': {
+                name: 'EPCOT',
+                hours: { open: 9, close: 21 },
+                attractions: [
+                    { name: 'Guardians of the Galaxy', type: 'Thrill Ride', baseWait: 90, variance: 45, peakHours: [10, 11, 12, 18, 19] },
+                    { name: 'Test Track', type: 'Thrill Ride', baseWait: 65, variance: 40, peakHours: [11, 12, 13, 14, 15] },
+                    { name: 'Frozen Ever After', type: 'Boat Ride', baseWait: 70, variance: 35, peakHours: [10, 11, 12, 13, 14] },
+                    { name: 'Remy\'s Ratatouille', type: 'Trackless Ride', baseWait: 60, variance: 35, peakHours: [11, 12, 13, 17, 18] },
+                    { name: 'Soarin\' Around the World', type: 'Simulator', baseWait: 55, variance: 30, peakHours: [11, 12, 13, 14] },
+                    { name: 'Spaceship Earth', type: 'Dark Ride', baseWait: 25, variance: 20, peakHours: [10, 11, 12] },
+                    { name: 'Living with the Land', type: 'Boat Ride', baseWait: 20, variance: 15, peakHours: [12, 13, 14] },
+                    { name: 'Journey Into Imagination', type: 'Dark Ride', baseWait: 15, variance: 15, peakHours: [12, 13, 14, 15] }
+                ]
+            },
+            'hollywood-studios': {
+                name: 'Hollywood Studios',
+                hours: { open: 9, close: 21 },
+                attractions: [
+                    { name: 'Rise of the Resistance', type: 'Trackless Ride', baseWait: 100, variance: 50, peakHours: [9, 10, 11, 12, 18, 19] },
+                    { name: 'Millennium Falcon', type: 'Simulator', baseWait: 60, variance: 35, peakHours: [10, 11, 12, 13] },
+                    { name: 'Slinky Dog Dash', type: 'Coaster', baseWait: 75, variance: 40, peakHours: [9, 10, 11, 17, 18] },
+                    { name: 'Tower of Terror', type: 'Drop Ride', baseWait: 55, variance: 35, peakHours: [11, 12, 13, 19, 20] },
+                    { name: 'Rock \'n\' Roller Coaster', type: 'Thrill Ride', baseWait: 60, variance: 35, peakHours: [11, 12, 13, 14, 19] },
+                    { name: 'Mickey & Minnie\'s Runaway', type: 'Trackless Ride', baseWait: 70, variance: 40, peakHours: [10, 11, 12, 13, 17, 18] },
+                    { name: 'Toy Story Mania', type: 'Interactive Ride', baseWait: 50, variance: 30, peakHours: [10, 11, 12, 13, 14] },
+                    { name: 'Alien Swirling Saucers', type: 'Spinner', baseWait: 35, variance: 25, peakHours: [11, 12, 13, 17, 18] }
+                ]
+            },
+            'animal-kingdom': {
+                name: 'Animal Kingdom',
+                hours: { open: 8, close: 20 },
+                attractions: [
+                    { name: 'Avatar Flight of Passage', type: 'Simulator', baseWait: 95, variance: 50, peakHours: [8, 9, 10, 17, 18, 19] },
+                    { name: 'Na\'vi River Journey', type: 'Boat Ride', baseWait: 55, variance: 35, peakHours: [9, 10, 11, 17, 18] },
+                    { name: 'Expedition Everest', type: 'Coaster', baseWait: 50, variance: 35, peakHours: [10, 11, 12, 13] },
+                    { name: 'Kilimanjaro Safaris', type: 'Safari', baseWait: 45, variance: 30, peakHours: [8, 9, 10, 16, 17] },
+                    { name: 'Dinosaur', type: 'Dark Ride', baseWait: 35, variance: 25, peakHours: [11, 12, 13, 14] },
+                    { name: 'Kali River Rapids', type: 'Water Ride', baseWait: 40, variance: 30, peakHours: [12, 13, 14, 15] },
+                    { name: 'Gorilla Falls Trail', type: 'Walk-through', baseWait: 10, variance: 10, peakHours: [10, 11, 12] },
+                    { name: 'TriceraTop Spin', type: 'Spinner', baseWait: 20, variance: 15, peakHours: [11, 12, 13, 14] }
+                ]
+            },
+            'universal-studios': {
+                name: 'Universal Studios Florida',
+                hours: { open: 9, close: 22 },
+                attractions: [
+                    { name: 'Hagrid\'s Motorbike Adventure', type: 'Coaster', baseWait: 100, variance: 50, peakHours: [9, 10, 11, 18, 19, 20] },
+                    { name: 'Revenge of the Mummy', type: 'Coaster', baseWait: 45, variance: 30, peakHours: [11, 12, 13, 14] },
+                    { name: 'Harry Potter Escape Gringotts', type: 'Dark Ride', baseWait: 70, variance: 40, peakHours: [10, 11, 12, 17, 18] },
+                    { name: 'Transformers 3D', type: 'Simulator', baseWait: 40, variance: 25, peakHours: [11, 12, 13, 14] },
+                    { name: 'Men in Black', type: 'Interactive Ride', baseWait: 35, variance: 25, peakHours: [12, 13, 14, 15] },
+                    { name: 'E.T. Adventure', type: 'Dark Ride', baseWait: 30, variance: 20, peakHours: [11, 12, 13] },
+                    { name: 'Hollywood Rip Ride Rockit', type: 'Coaster', baseWait: 55, variance: 35, peakHours: [11, 12, 13, 19, 20] },
+                    { name: 'The Simpsons Ride', type: 'Simulator', baseWait: 35, variance: 25, peakHours: [12, 13, 14, 15] }
+                ]
+            },
+            'islands-adventure': {
+                name: 'Islands of Adventure',
+                hours: { open: 9, close: 22 },
+                attractions: [
+                    { name: 'VelociCoaster', type: 'Coaster', baseWait: 90, variance: 45, peakHours: [9, 10, 11, 18, 19, 20] },
+                    { name: 'Hagrid\'s Motorbike Adventure', type: 'Coaster', baseWait: 95, variance: 50, peakHours: [9, 10, 11, 17, 18, 19] },
+                    { name: 'Forbidden Journey', type: 'Dark Ride', baseWait: 60, variance: 35, peakHours: [10, 11, 12, 13, 17, 18] },
+                    { name: 'Incredible Hulk Coaster', type: 'Coaster', baseWait: 50, variance: 30, peakHours: [11, 12, 13, 14, 19, 20] },
+                    { name: 'Spider-Man', type: 'Dark Ride', baseWait: 40, variance: 25, peakHours: [11, 12, 13, 14] },
+                    { name: 'Jurassic World VelociCoaster', type: 'Coaster', baseWait: 85, variance: 40, peakHours: [10, 11, 12, 18, 19] },
+                    { name: 'Skull Island: Reign of Kong', type: 'Dark Ride', baseWait: 45, variance: 30, peakHours: [11, 12, 13, 14, 15] },
+                    { name: 'Popeye & Bluto\'s', type: 'Water Ride', baseWait: 35, variance: 25, peakHours: [12, 13, 14, 15] }
+                ]
+            },
+            'epic-universe': {
+                name: 'Epic Universe',
+                hours: { open: 9, close: 22 },
+                attractions: [
+                    { name: 'Starfall Racers', type: 'Coaster', baseWait: 95, variance: 50, peakHours: [9, 10, 11, 18, 19, 20] },
+                    { name: 'Harry Potter Ministry of Magic', type: 'Dark Ride', baseWait: 100, variance: 50, peakHours: [9, 10, 11, 12, 17, 18] },
+                    { name: 'How to Train Your Dragon', type: 'Coaster', baseWait: 80, variance: 40, peakHours: [10, 11, 12, 17, 18, 19] },
+                    { name: 'Super Nintendo World Mario Kart', type: 'Dark Ride', baseWait: 90, variance: 45, peakHours: [9, 10, 11, 12, 18, 19] },
+                    { name: 'Donkey Kong Mine Cart', type: 'Coaster', baseWait: 85, variance: 40, peakHours: [10, 11, 12, 17, 18] },
+                    { name: 'Dark Universe Monsters', type: 'Dark Ride', baseWait: 70, variance: 35, peakHours: [11, 12, 13, 18, 19, 20] },
+                    { name: 'Celestial Park Dual Coaster', type: 'Coaster', baseWait: 75, variance: 35, peakHours: [10, 11, 12, 13, 19, 20] },
+                    { name: 'Yoshi\'s Adventure', type: 'Family Ride', baseWait: 45, variance: 25, peakHours: [10, 11, 12, 13, 14] }
+                ]
+            },
+            'seaworld': {
+                name: 'SeaWorld Orlando',
+                hours: { open: 10, close: 20 },
+                attractions: [
+                    { name: 'Mako', type: 'Coaster', baseWait: 55, variance: 35, peakHours: [11, 12, 13, 14, 17, 18] },
+                    { name: 'Kraken', type: 'Coaster', baseWait: 40, variance: 25, peakHours: [11, 12, 13, 14] },
+                    { name: 'Manta', type: 'Coaster', baseWait: 45, variance: 30, peakHours: [11, 12, 13, 17, 18] },
+                    { name: 'Journey to Atlantis', type: 'Water Ride', baseWait: 35, variance: 25, peakHours: [12, 13, 14, 15] },
+                    { name: 'Ice Breaker', type: 'Coaster', baseWait: 50, variance: 30, peakHours: [11, 12, 13, 14, 17] },
+                    { name: 'Pipeline: The Surf Coaster', type: 'Coaster', baseWait: 60, variance: 35, peakHours: [10, 11, 12, 17, 18] },
+                    { name: 'Antarctica: Empire of Penguin', type: 'Dark Ride', baseWait: 25, variance: 20, peakHours: [12, 13, 14] },
+                    { name: 'Infinity Falls', type: 'Water Ride', baseWait: 40, variance: 25, peakHours: [12, 13, 14, 15, 16] }
+                ]
+            },
+            'busch-gardens': {
+                name: 'Busch Gardens Tampa',
+                hours: { open: 10, close: 20 },
+                attractions: [
+                    { name: 'Iron Gwazi', type: 'Coaster', baseWait: 70, variance: 40, peakHours: [10, 11, 12, 17, 18, 19] },
+                    { name: 'SheiKra', type: 'Coaster', baseWait: 50, variance: 30, peakHours: [11, 12, 13, 14, 17, 18] },
+                    { name: 'Cheetah Hunt', type: 'Coaster', baseWait: 55, variance: 35, peakHours: [11, 12, 13, 14, 17] },
+                    { name: 'Montu', type: 'Coaster', baseWait: 35, variance: 25, peakHours: [11, 12, 13, 14] },
+                    { name: 'Kumba', type: 'Coaster', baseWait: 30, variance: 20, peakHours: [11, 12, 13] },
+                    { name: 'Tigris', type: 'Coaster', baseWait: 45, variance: 30, peakHours: [11, 12, 13, 17, 18] },
+                    { name: 'Cobra\'s Curse', type: 'Coaster', baseWait: 40, variance: 25, peakHours: [11, 12, 13, 14, 15] },
+                    { name: 'Congo River Rapids', type: 'Water Ride', baseWait: 35, variance: 25, peakHours: [12, 13, 14, 15] }
+                ]
+            }
+        };
+
+        let currentPark = 'magic-kingdom';
+        let currentDate = new Date();
+
+        // Days of week in Portuguese
+        const diasSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+
+        // Generate last 14 days for date selector
+        function populateDateSelector() {
+            const selector = document.getElementById('dateSelector');
+            selector.innerHTML = '';
+            
+            const today = new Date();
+            
+            for (let i = 0; i < 14; i++) {
+                const date = new Date(today);
+                date.setDate(today.getDate() - i);
+                
+                const dayOfWeek = diasSemana[date.getDay()];
+                const day = date.getDate().toString().padStart(2, '0');
+                const month = (date.getMonth() + 1).toString().padStart(2, '0');
+                const year = date.getFullYear();
+                
+                const option = document.createElement('option');
+                option.value = date.toISOString().split('T')[0];
+                option.textContent = `${day}/${month}/${year} (${dayOfWeek})`;
+                
+                if (i === 0) {
+                    option.textContent += ' - Hoje';
+                } else if (i === 1) {
+                    option.textContent += ' - Ontem';
+                }
+                
+                selector.appendChild(option);
+            }
+        }
+
+        // Generate wait times based on attraction parameters and date seed
+        function generateWaitTime(attraction, hour, minute, dateSeed) {
+            const time = hour + minute / 60;
+            const isPeakHour = attraction.peakHours.includes(hour);
+            
+            // Use date as seed for consistent random values per day
+            const seed = dateSeed + attraction.name.length + hour * 60 + minute;
+            const seededRandom = () => {
+                const x = Math.sin(seed * 9999) * 10000;
+                return x - Math.floor(x);
+            };
+            
+            // Day of week multiplier (weekends are busier)
+            const selectedDate = new Date(document.getElementById('dateSelector').value);
+            const dayOfWeek = selectedDate.getDay();
+            let dayMultiplier = 1;
+            if (dayOfWeek === 0 || dayOfWeek === 6) dayMultiplier = 1.3; // Weekend
+            if (dayOfWeek === 5) dayMultiplier = 1.15; // Friday
+            
+            // Base multiplier based on time of day
+            let timeMultiplier = 1;
+            
+            // Early morning - lower crowds
+            if (time < 10) timeMultiplier = 0.5;
+            // Mid-morning ramp up
+            else if (time < 11) timeMultiplier = 0.7;
+            // Peak afternoon
+            else if (time >= 11 && time < 15) timeMultiplier = 1.1;
+            // Afternoon dip
+            else if (time >= 15 && time < 17) timeMultiplier = 0.85;
+            // Evening surge
+            else if (time >= 17 && time < 20) timeMultiplier = 1.05;
+            // Late night drop
+            else timeMultiplier = 0.6;
+            
+            // Peak hour boost
+            if (isPeakHour) timeMultiplier *= 1.25;
+            
+            // Add some random variance based on date seed
+            const randomFactor = 0.8 + seededRandom() * 0.4;
+            
+            let waitTime = attraction.baseWait * timeMultiplier * randomFactor * dayMultiplier;
+            
+            // Add sine wave for natural flow
+            const sineWave = Math.sin((time - 9) * 0.5) * (attraction.variance * 0.3);
+            waitTime += sineWave;
+            
+            return Math.max(5, Math.round(waitTime / 5) * 5);
+        }
+
+        // Get date seed from selected date
+        function getDateSeed() {
+            const dateStr = document.getElementById('dateSelector').value;
+            const date = new Date(dateStr);
+            return date.getFullYear() * 10000 + (date.getMonth() + 1) * 100 + date.getDate();
+        }
+
+        // Get color class based on wait time
+        function getQueueClass(waitTime) {
+            if (waitTime <= 5) return 'q-0';
+            if (waitTime <= 10) return 'q-5';
+            if (waitTime <= 15) return 'q-10';
+            if (waitTime <= 20) return 'q-15';
+            if (waitTime <= 25) return 'q-20';
+            if (waitTime <= 30) return 'q-25';
+            if (waitTime <= 35) return 'q-30';
+            if (waitTime <= 40) return 'q-35';
+            if (waitTime <= 45) return 'q-40';
+            if (waitTime <= 50) return 'q-45';
+            if (waitTime <= 55) return 'q-50';
+            if (waitTime <= 60) return 'q-55';
+            if (waitTime <= 70) return 'q-60';
+            if (waitTime <= 80) return 'q-70';
+            if (waitTime <= 90) return 'q-75';
+            if (waitTime <= 100) return 'q-80';
+            if (waitTime <= 110) return 'q-90';
+            if (waitTime <= 120) return 'q-100';
+            return 'q-120';
+        }
+
+        // Generate time slots
+        function generateTimeSlots(park) {
+            const slots = [];
+            const { open, close } = park.hours;
+            
+            for (let hour = open; hour < close; hour++) {
+                for (let minute = 0; minute < 60; minute += 10) {
+                    slots.push({ hour, minute });
+                }
+            }
+            return slots;
+        }
+
+        // Format time
+        function formatTime(hour, minute) {
+            return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+        }
+
+        // Render table
+        function renderTable() {
+            const park = parksData[currentPark];
+            const timeSlots = generateTimeSlots(park);
+            
+            // Render header
+            let headerHTML = '<tr><th>Atração</th>';
+            timeSlots.forEach(slot => {
+                const isHourMark = slot.minute === 0;
+                headerHTML += `<th class="time-header ${isHourMark ? 'hour-mark' : ''}">${formatTime(slot.hour, slot.minute)}</th>`;
+            });
+            headerHTML += '</tr>';
+            document.getElementById('tableHead').innerHTML = headerHTML;
+            
+            // Store all wait data for stats
+            const allWaitData = [];
+            
+            // Render body
+            let bodyHTML = '';
+            park.attractions.forEach(attraction => {
+                const attractionWaits = [];
+                
+                bodyHTML += '<tr>';
+                bodyHTML += `<td><div class="attraction-name">${attraction.name}</div><div class="attraction-type">${attraction.type}</div></td>`;
+                
+                const dateSeed = getDateSeed();
+                timeSlots.forEach(slot => {
+                    const waitTime = generateWaitTime(attraction, slot.hour, slot.minute, dateSeed);
+                    attractionWaits.push({ time: formatTime(slot.hour, slot.minute), wait: waitTime });
+                    
+                    const colorClass = getQueueClass(waitTime);
+                    const tooltip = `${attraction.name} às ${formatTime(slot.hour, slot.minute)}: ${waitTime} min`;
+                    
+                    bodyHTML += `<td><div class="queue-cell ${colorClass}" data-tooltip="${tooltip}">${waitTime}</div></td>`;
+                });
+                
+                allWaitData.push({ name: attraction.name, waits: attractionWaits });
+                bodyHTML += '</tr>';
+            });
+            
+            document.getElementById('tableBody').innerHTML = bodyHTML;
+            
+            // Update stats
+            updateStats(allWaitData, park);
+        }
+
+        // Update statistics panel
+        function updateStats(data, park) {
+            // Calculate summary stats
+            let allWaits = [];
+            data.forEach(attraction => {
+                attraction.waits.forEach(w => allWaits.push(w.wait));
+            });
+            
+            const avgWait = Math.round(allWaits.reduce((a, b) => a + b, 0) / allWaits.length);
+            const maxWait = Math.max(...allWaits);
+            const minWait = Math.min(...allWaits);
+            
+            document.getElementById('summaryStats').innerHTML = `
+                <div class="summary-stat">
+                    <div class="summary-stat-value">${avgWait}</div>
+                    <div class="summary-stat-label">Média (min)</div>
+                </div>
+                <div class="summary-stat">
+                    <div class="summary-stat-value">${minWait}</div>
+                    <div class="summary-stat-label">Mínimo (min)</div>
+                </div>
+                <div class="summary-stat">
+                    <div class="summary-stat-value">${maxWait}</div>
+                    <div class="summary-stat-label">Máximo (min)</div>
+                </div>
+            `;
+            
+            // Find best times for top attractions
+            const bestTimes = data.slice(0, 4).map(attraction => {
+                const minWait = Math.min(...attraction.waits.map(w => w.wait));
+                const bestSlot = attraction.waits.find(w => w.wait === minWait);
+                return {
+                    name: attraction.name,
+                    time: bestSlot.time,
+                    wait: minWait
+                };
+            });
+            
+            document.getElementById('bestTimes').innerHTML = bestTimes.map(item => `
+                <div class="best-time-item">
+                    <span class="best-time-attraction">${item.name}</span>
+                    <span class="best-time-value">${item.time} → ${item.wait} min</span>
+                </div>
+            `).join('');
+        }
+
+        // Park selector
+        document.getElementById('parkSelector').addEventListener('change', (e) => {
+            currentPark = e.target.value;
+            renderTable();
+        });
+
+        // Date selector
+        document.getElementById('dateSelector').addEventListener('change', () => {
+            renderTable();
+        });
+
+        // Initial setup
+        populateDateSelector();
+        renderTable();
+    </script>
+</body>
+</html>

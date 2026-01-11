@@ -1,0 +1,29 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+npm-debug.log*
+
+# Local development - NUNCA commitar credenciais!
+.env
+.env.local
+.env.*.local
+
+# Config gerado pelo build (contém credenciais)
+config.js
+
+# Backup files
+*.bak
+*.backup
+
+# Old prototype (can be removed after confirming new version works)
+# disney-queue-visualizer.html

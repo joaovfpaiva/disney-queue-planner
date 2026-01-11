@@ -1,0 +1,1420 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Disney Queue Planner</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏰</text></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-tertiary: #1a1a25;
+            --text-primary: #f0f0f5;
+            --text-secondary: #8888a0;
+            --text-muted: #555566;
+            --accent: #6366f1;
+            --accent-glow: rgba(99, 102, 241, 0.3);
+            
+            /* Queue time colors - gradient from green to red */
+            --queue-0: #10b981;
+            --queue-15: #22c55e;
+            --queue-30: #84cc16;
+            --queue-45: #eab308;
+            --queue-60: #f97316;
+            --queue-75: #ef4444;
+            --queue-90: #dc2626;
+            --queue-120: #991b1b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: auto;
+        }
+
+        .app-container {
+            padding: 32px 40px;
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .logo {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--accent), #a855f7);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 20px var(--accent-glow);
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+
+        h1 span {
+            color: var(--text-secondary);
+            font-weight: 400;
+        }
+
+        .controls {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .selector-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .selector-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 500;
+        }
+
+        .custom-select {
+            position: relative;
+            min-width: 220px;
+        }
+
+        .custom-select select {
+            width: 100%;
+            padding: 12px 40px 12px 16px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--bg-tertiary);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            appearance: none;
+            transition: all 0.2s ease;
+        }
+
+        .custom-select select:hover {
+            border-color: var(--accent);
+        }
+
+        .custom-select select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        .custom-select select:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .custom-select::after {
+            content: '';
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 0;
+            height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-top: 6px solid var(--text-secondary);
+            pointer-events: none;
+        }
+
+        .custom-select select option {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            padding: 12px;
+        }
+
+        .legend {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--bg-secondary);
+            border-radius: 10px;
+        }
+
+        .legend-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .legend-gradient {
+            width: 120px;
+            height: 12px;
+            border-radius: 6px;
+            background: linear-gradient(90deg, var(--queue-0), var(--queue-30), var(--queue-60), var(--queue-90), var(--queue-120));
+        }
+
+        .legend-values {
+            display: flex;
+            gap: 4px;
+            font-size: 11px;
+            color: var(--text-muted);
+            font-family: 'Space Mono', monospace;
+        }
+
+        .table-container {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 40px rgba(0, 0, 0, 0.3);
+            position: relative;
+            min-height: 300px;
+        }
+
+        .queue-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .queue-table thead {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .queue-table th {
+            background: var(--bg-tertiary);
+            padding: 14px 8px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            border-bottom: 2px solid var(--bg-primary);
+            white-space: nowrap;
+        }
+
+        .queue-table th:first-child {
+            position: sticky;
+            left: 0;
+            z-index: 20;
+            background: var(--bg-tertiary);
+            text-align: left;
+            padding-left: 20px;
+            min-width: 200px;
+        }
+
+        .queue-table th.time-header {
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            min-width: 48px;
+            padding: 14px 4px;
+        }
+
+        .queue-table th.time-header.hour-mark {
+            border-left: 1px solid var(--text-muted);
+            color: var(--text-primary);
+            font-weight: 700;
+        }
+
+        .queue-table th.time-header.early-entry {
+            background: linear-gradient(180deg, rgba(99, 102, 241, 0.2) 0%, var(--bg-tertiary) 100%);
+        }
+
+        .queue-table tbody tr {
+            border-bottom: 1px solid var(--bg-primary);
+        }
+
+        .queue-table tbody tr:hover {
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        .queue-table td {
+            padding: 0;
+            text-align: center;
+            position: relative;
+        }
+
+        .queue-table td:first-child {
+            position: sticky;
+            left: 0;
+            background: var(--bg-secondary);
+            z-index: 5;
+            padding: 16px 20px;
+            text-align: left;
+        }
+
+        .queue-table tbody tr:hover td:first-child {
+            background: var(--bg-tertiary);
+        }
+
+        .attraction-name {
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .attraction-type {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .queue-cell {
+            width: 100%;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            font-weight: 500;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            cursor: pointer;
+            transition: all 0.15s ease;
+            position: relative;
+        }
+
+        .queue-cell:hover {
+            transform: scale(1.1);
+            z-index: 10;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            border-radius: 4px;
+        }
+
+        .queue-cell::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+            z-index: 100;
+        }
+
+        .queue-cell:hover::after {
+            opacity: 1;
+        }
+
+        .queue-cell.closed {
+            background: var(--bg-tertiary);
+            color: var(--text-muted);
+        }
+
+        .queue-cell.down {
+            background: #7c2d12;
+            color: #fbbf24;
+        }
+
+        /* Queue time color classes */
+        .q-0 { background: var(--queue-0); }
+        .q-5 { background: color-mix(in srgb, var(--queue-0) 66%, var(--queue-15)); }
+        .q-10 { background: color-mix(in srgb, var(--queue-0) 33%, var(--queue-15)); }
+        .q-15 { background: var(--queue-15); }
+        .q-20 { background: color-mix(in srgb, var(--queue-15) 66%, var(--queue-30)); }
+        .q-25 { background: color-mix(in srgb, var(--queue-15) 33%, var(--queue-30)); }
+        .q-30 { background: var(--queue-30); }
+        .q-35 { background: color-mix(in srgb, var(--queue-30) 66%, var(--queue-45)); }
+        .q-40 { background: color-mix(in srgb, var(--queue-30) 33%, var(--queue-45)); }
+        .q-45 { background: var(--queue-45); }
+        .q-50 { background: color-mix(in srgb, var(--queue-45) 66%, var(--queue-60)); }
+        .q-55 { background: color-mix(in srgb, var(--queue-45) 33%, var(--queue-60)); }
+        .q-60 { background: var(--queue-60); }
+        .q-70 { background: color-mix(in srgb, var(--queue-60) 50%, var(--queue-75)); }
+        .q-75 { background: var(--queue-75); }
+        .q-80 { background: color-mix(in srgb, var(--queue-75) 66%, var(--queue-90)); }
+        .q-90 { background: var(--queue-90); }
+        .q-100 { background: color-mix(in srgb, var(--queue-90) 50%, var(--queue-120)); }
+        .q-120 { background: var(--queue-120); }
+
+        /* Loading & State overlays */
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(10, 10, 15, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            z-index: 100;
+        }
+
+        .loading-overlay.hidden {
+            display: none;
+        }
+
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid var(--bg-tertiary);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .empty-state, .error-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+            text-align: center;
+        }
+
+        .empty-state.hidden, .error-state.hidden {
+            display: none;
+        }
+
+        .empty-state-icon, .error-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .empty-state h3, .error-state h3 {
+            font-size: 18px;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .empty-state p, .error-state p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            max-width: 400px;
+        }
+
+        .retry-btn {
+            margin-top: 20px;
+            padding: 12px 24px;
+            background: var(--accent);
+            border: none;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .retry-btn:hover {
+            background: #4f46e5;
+            transform: translateY(-2px);
+        }
+
+        /* Schedule info bar */
+        .schedule-bar {
+            display: flex;
+            gap: 24px;
+            padding: 12px 20px;
+            background: var(--bg-tertiary);
+            border-radius: 10px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .schedule-bar.hidden {
+            display: none;
+        }
+
+        .schedule-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .schedule-item-icon {
+            font-size: 16px;
+        }
+
+        .schedule-item-label {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .schedule-item-value {
+            font-size: 14px;
+            font-weight: 500;
+            font-family: 'Space Mono', monospace;
+        }
+
+        .schedule-item-value.early {
+            color: var(--accent);
+        }
+
+        /* Stats panel */
+        .stats-panel {
+            margin-top: 24px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .stats-panel.hidden {
+            display: none;
+        }
+
+        .stat-card {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .stat-card h3 {
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .best-times {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .best-time-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+        }
+
+        .best-time-attraction {
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .best-time-value {
+            font-family: 'Space Mono', monospace;
+            font-size: 13px;
+            padding: 4px 10px;
+            background: var(--queue-0);
+            color: white;
+            border-radius: 6px;
+        }
+
+        .summary-stats {
+            display: flex;
+            gap: 20px;
+        }
+
+        .summary-stat {
+            flex: 1;
+            text-align: center;
+            padding: 16px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+        }
+
+        .summary-stat-value {
+            font-size: 32px;
+            font-weight: 600;
+            color: var(--accent);
+            font-family: 'Space Mono', monospace;
+        }
+
+        .summary-stat-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* Last updated badge */
+        .last-updated {
+            font-size: 11px;
+            color: var(--text-muted);
+            padding: 6px 12px;
+            background: var(--bg-secondary);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .last-updated.hidden {
+            display: none;
+        }
+
+        .update-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--queue-0);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Config modal */
+        .config-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .config-modal.hidden {
+            display: none;
+        }
+
+        .config-content {
+            background: var(--bg-secondary);
+            padding: 32px;
+            border-radius: 16px;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .config-content h2 {
+            margin-bottom: 8px;
+        }
+
+        .config-content p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        .config-field {
+            margin-bottom: 16px;
+        }
+
+        .config-field label {
+            display: block;
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .config-field input {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--bg-primary);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: 'Space Mono', monospace;
+            font-size: 13px;
+        }
+
+        .config-field input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .config-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .config-btn {
+            flex: 1;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .config-btn.primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .config-btn.primary:hover {
+            background: #4f46e5;
+        }
+
+        .config-btn.secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        @media (max-width: 768px) {
+            .app-container {
+                padding: 16px;
+            }
+            
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .controls {
+                width: 100%;
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .park-selector {
+                overflow-x: auto;
+                width: 100%;
+            }
+
+            .schedule-bar {
+                flex-direction: column;
+                gap: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <div class="logo-section">
+                <div class="logo">🏰</div>
+                <h1>Queue Planner <span id="parkSubtitle">/ Disney World</span></h1>
+            </div>
+            <div class="controls">
+                <div class="selector-group">
+                    <span class="selector-label">Parque</span>
+                    <div class="custom-select">
+                        <select id="parkSelector" disabled>
+                            <option value="">Carregando parques...</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="selector-group">
+                    <span class="selector-label">Data</span>
+                    <div class="custom-select">
+                        <select id="dateSelector" disabled>
+                            <option value="">Selecione um parque</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="legend">
+                    <span class="legend-label">Tempo de fila:</span>
+                    <div class="legend-gradient"></div>
+                    <div class="legend-values">
+                        <span>0</span>
+                        <span>60</span>
+                        <span>120+</span>
+                    </div>
+                </div>
+                <div class="last-updated hidden" id="lastUpdated">
+                    <span class="update-dot"></span>
+                    <span id="lastUpdateTime">--</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="schedule-bar hidden" id="scheduleBar">
+            <div class="schedule-item">
+                <span class="schedule-item-icon">🌅</span>
+                <span class="schedule-item-label">Early Entry:</span>
+                <span class="schedule-item-value early" id="earlyEntryTime">--</span>
+            </div>
+            <div class="schedule-item">
+                <span class="schedule-item-icon">🚪</span>
+                <span class="schedule-item-label">Abertura:</span>
+                <span class="schedule-item-value" id="openTime">--</span>
+            </div>
+            <div class="schedule-item">
+                <span class="schedule-item-icon">🌙</span>
+                <span class="schedule-item-label">Fechamento:</span>
+                <span class="schedule-item-value" id="closeTime">--</span>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <div class="loading-overlay" id="loadingOverlay">
+                <div class="spinner"></div>
+                <span class="loading-text">Carregando dados...</span>
+            </div>
+
+            <div class="empty-state hidden" id="emptyState">
+                <span class="empty-state-icon">📭</span>
+                <h3>Nenhum dado disponível</h3>
+                <p>Não há dados de tempo de fila para esta data. Selecione outra data ou aguarde a coleta de dados.</p>
+            </div>
+
+            <div class="error-state hidden" id="errorState">
+                <span class="error-state-icon">⚠️</span>
+                <h3>Erro ao carregar dados</h3>
+                <p id="errorMessage">Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.</p>
+                <button class="retry-btn" onclick="loadData()">Tentar novamente</button>
+            </div>
+
+            <table class="queue-table" id="queueTable">
+                <thead id="tableHead"></thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+
+        <div class="stats-panel hidden" id="statsPanel">
+            <div class="stat-card">
+                <h3>📊 Resumo do Dia</h3>
+                <div class="summary-stats" id="summaryStats"></div>
+            </div>
+            <div class="stat-card">
+                <h3>⏰ Melhores Horários</h3>
+                <div class="best-times" id="bestTimes"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Config Modal - shown if credentials not configured -->
+    <div class="config-modal hidden" id="configModal">
+        <div class="config-content">
+            <h2>⚙️ Configuração</h2>
+            <p>Insira as credenciais do Supabase para conectar aos dados. Você pode encontrar essas informações no Dashboard do Supabase → Settings → API.</p>
+            
+            <div class="config-field">
+                <label>Project URL</label>
+                <input type="text" id="configUrl" placeholder="https://xxxxx.supabase.co">
+            </div>
+            
+            <div class="config-field">
+                <label>Anon/Public Key</label>
+                <input type="text" id="configKey" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
+            </div>
+
+            <div class="config-actions">
+                <button class="config-btn primary" onclick="saveConfig()">Salvar e Conectar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Config externo gerado pelo build (Netlify) -->
+    <script src="config.js" onerror="window.CONFIG = { SUPABASE_URL: '', SUPABASE_ANON_KEY: '' };"></script>
+    
+    <script>
+        // ============================================
+        // CONFIGURATION
+        // ============================================
+        
+        // CONFIG é carregado do config.js (gerado pelo Netlify build)
+        // Se não existir, será criado vazio pelo onerror acima
+        // Fallback: usuário pode configurar pelo modal (salva no localStorage)
+
+        // Check localStorage for saved config, then CONFIG from build
+        function getConfig() {
+            // 1. Primeiro tenta localStorage (configuração manual do usuário)
+            const savedUrl = localStorage.getItem('supabase_url');
+            const savedKey = localStorage.getItem('supabase_key');
+            
+            if (savedUrl && savedKey) {
+                return { url: savedUrl, key: savedKey };
+            }
+            
+            // 2. Depois tenta CONFIG do config.js (gerado pelo Netlify build)
+            if (typeof CONFIG !== 'undefined' && CONFIG.SUPABASE_URL && CONFIG.SUPABASE_ANON_KEY) {
+                return { url: CONFIG.SUPABASE_URL, key: CONFIG.SUPABASE_ANON_KEY };
+            }
+            
+            // 3. Sem configuração - mostrar modal
+            return null;
+        }
+
+        function saveConfig() {
+            const url = document.getElementById('configUrl').value.trim();
+            const key = document.getElementById('configKey').value.trim();
+            
+            if (!url || !key) {
+                alert('Por favor, preencha ambos os campos.');
+                return;
+            }
+            
+            localStorage.setItem('supabase_url', url);
+            localStorage.setItem('supabase_key', key);
+            
+            document.getElementById('configModal').classList.add('hidden');
+            init();
+        }
+
+        function getHeaders() {
+            const config = getConfig();
+            if (!config) return null;
+            
+            return {
+                'apikey': config.key,
+                'Authorization': `Bearer ${config.key}`,
+                'Content-Type': 'application/json'
+            };
+        }
+
+        function getBaseUrl() {
+            const config = getConfig();
+            return config ? config.url : null;
+        }
+
+        // ============================================
+        // STATE
+        // ============================================
+        
+        let currentPark = null;
+        let currentDate = null;
+        let parksData = [];
+        let availableDates = [];
+        let currentSchedule = null;
+        let waitTimesData = [];
+
+        // ============================================
+        // API FUNCTIONS
+        // ============================================
+
+        async function fetchAPI(endpoint) {
+            const baseUrl = getBaseUrl();
+            const headers = getHeaders();
+            
+            if (!baseUrl || !headers) {
+                throw new Error('Supabase não configurado');
+            }
+            
+            const response = await fetch(`${baseUrl}/rest/v1/${endpoint}`, { headers });
+            
+            if (!response.ok) {
+                throw new Error(`API error: ${response.status}`);
+            }
+            
+            return response.json();
+        }
+
+        async function loadParks() {
+            return fetchAPI('parks?select=id,name&order=name');
+        }
+
+        async function loadAvailableDates(parkId) {
+            const data = await fetchAPI(
+                `wait_times?select=recorded_at,attractions!inner(park_id)&attractions.park_id=eq.${parkId}&order=recorded_at.desc`
+            );
+            
+            // Extract unique dates
+            const dates = [...new Set(data.map(d => d.recorded_at.split('T')[0]))];
+            return dates.sort().reverse();
+        }
+
+        async function loadParkSchedule(parkId, date) {
+            const data = await fetchAPI(
+                `park_schedules?park_id=eq.${parkId}&date=eq.${date}&select=*`
+            );
+            return data[0] || null;
+        }
+
+        async function loadWaitTimes(parkId, date) {
+            const nextDay = new Date(date);
+            nextDay.setDate(nextDay.getDate() + 1);
+            const nextDayStr = nextDay.toISOString().split('T')[0];
+            
+            return fetchAPI(
+                `wait_times?select=*,attractions!inner(id,name,type,park_id)&attractions.park_id=eq.${parkId}&recorded_at=gte.${date}T00:00:00Z&recorded_at=lt.${nextDayStr}T00:00:00Z&order=recorded_at`
+            );
+        }
+
+        // ============================================
+        // UTILITY FUNCTIONS
+        // ============================================
+
+        function utcToOrlando(utcString) {
+            const date = new Date(utcString);
+            return date.toLocaleTimeString('en-US', {
+                timeZone: 'America/New_York',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+            });
+        }
+
+        function formatTimeLocal(timeString) {
+            if (!timeString) return '--';
+            return timeString.substring(0, 5);
+        }
+
+        function getQueueClass(waitTime) {
+            if (waitTime === null) return 'closed';
+            if (waitTime <= 5) return 'q-0';
+            if (waitTime <= 10) return 'q-5';
+            if (waitTime <= 15) return 'q-10';
+            if (waitTime <= 20) return 'q-15';
+            if (waitTime <= 25) return 'q-20';
+            if (waitTime <= 30) return 'q-25';
+            if (waitTime <= 35) return 'q-30';
+            if (waitTime <= 40) return 'q-35';
+            if (waitTime <= 45) return 'q-40';
+            if (waitTime <= 50) return 'q-45';
+            if (waitTime <= 55) return 'q-50';
+            if (waitTime <= 60) return 'q-55';
+            if (waitTime <= 70) return 'q-60';
+            if (waitTime <= 80) return 'q-70';
+            if (waitTime <= 90) return 'q-75';
+            if (waitTime <= 100) return 'q-80';
+            if (waitTime <= 110) return 'q-90';
+            if (waitTime <= 120) return 'q-100';
+            return 'q-120';
+        }
+
+        function getStatusClass(status) {
+            if (status === 'DOWN') return 'down';
+            if (status === 'CLOSED') return 'closed';
+            return '';
+        }
+
+        function formatDateBR(dateStr) {
+            const date = new Date(dateStr + 'T12:00:00');
+            const diasSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+            const dayOfWeek = diasSemana[date.getDay()];
+            const day = date.getDate().toString().padStart(2, '0');
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const year = date.getFullYear();
+            
+            const today = new Date();
+            const todayStr = today.toISOString().split('T')[0];
+            const yesterday = new Date(today);
+            yesterday.setDate(yesterday.getDate() - 1);
+            const yesterdayStr = yesterday.toISOString().split('T')[0];
+            
+            let suffix = '';
+            if (dateStr === todayStr) suffix = ' - Hoje';
+            else if (dateStr === yesterdayStr) suffix = ' - Ontem';
+            
+            return `${day}/${month}/${year} (${dayOfWeek})${suffix}`;
+        }
+
+        // ============================================
+        // UI FUNCTIONS
+        // ============================================
+
+        function showLoading() {
+            document.getElementById('loadingOverlay').classList.remove('hidden');
+            document.getElementById('emptyState').classList.add('hidden');
+            document.getElementById('errorState').classList.add('hidden');
+            document.getElementById('tableHead').innerHTML = '';
+            document.getElementById('tableBody').innerHTML = '';
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').classList.add('hidden');
+        }
+
+        function showEmpty() {
+            hideLoading();
+            document.getElementById('emptyState').classList.remove('hidden');
+            document.getElementById('statsPanel').classList.add('hidden');
+        }
+
+        function showError(message) {
+            hideLoading();
+            document.getElementById('errorState').classList.remove('hidden');
+            document.getElementById('errorMessage').textContent = message;
+            document.getElementById('statsPanel').classList.add('hidden');
+        }
+
+        function updateParkSubtitle(parkName) {
+            const subtitle = document.getElementById('parkSubtitle');
+            if (parkName) {
+                subtitle.textContent = `/ ${parkName}`;
+            } else {
+                subtitle.textContent = '';
+            }
+        }
+
+        function updateScheduleBar() {
+            const scheduleBar = document.getElementById('scheduleBar');
+            
+            if (!currentSchedule) {
+                scheduleBar.classList.add('hidden');
+                return;
+            }
+            
+            scheduleBar.classList.remove('hidden');
+            document.getElementById('earlyEntryTime').textContent = formatTimeLocal(currentSchedule.early_entry);
+            document.getElementById('openTime').textContent = formatTimeLocal(currentSchedule.open_time);
+            document.getElementById('closeTime').textContent = formatTimeLocal(currentSchedule.close_time);
+        }
+
+        function updateLastUpdated() {
+            const lastUpdatedEl = document.getElementById('lastUpdated');
+            const lastUpdateTimeEl = document.getElementById('lastUpdateTime');
+            
+            if (waitTimesData.length === 0) {
+                lastUpdatedEl.classList.add('hidden');
+                return;
+            }
+            
+            // Find the most recent recorded_at
+            const latestRecord = waitTimesData.reduce((latest, record) => {
+                return record.recorded_at > latest.recorded_at ? record : latest;
+            }, waitTimesData[0]);
+            
+            const orlandoTime = utcToOrlando(latestRecord.recorded_at);
+            lastUpdateTimeEl.textContent = `Última coleta: ${orlandoTime} (Orlando)`;
+            lastUpdatedEl.classList.remove('hidden');
+        }
+
+        async function populateParkSelector() {
+            const selector = document.getElementById('parkSelector');
+            
+            try {
+                parksData = await loadParks();
+                
+                // Group parks by category
+                const disney = parksData.filter(p => 
+                    ['magic-kingdom', 'epcot', 'hollywood-studios', 'animal-kingdom'].includes(p.id)
+                );
+                const universal = parksData.filter(p => 
+                    ['universal-studios', 'islands-adventure', 'epic-universe'].includes(p.id)
+                );
+                const others = parksData.filter(p => 
+                    ['seaworld', 'busch-gardens'].includes(p.id)
+                );
+                
+                let html = '';
+                
+                if (disney.length > 0) {
+                    html += '<optgroup label="Walt Disney World">';
+                    disney.forEach(p => html += `<option value="${p.id}">${p.name}</option>`);
+                    html += '</optgroup>';
+                }
+                
+                if (universal.length > 0) {
+                    html += '<optgroup label="Universal Orlando">';
+                    universal.forEach(p => html += `<option value="${p.id}">${p.name}</option>`);
+                    html += '</optgroup>';
+                }
+                
+                if (others.length > 0) {
+                    html += '<optgroup label="Outros">';
+                    others.forEach(p => html += `<option value="${p.id}">${p.name}</option>`);
+                    html += '</optgroup>';
+                }
+                
+                selector.innerHTML = html;
+                selector.disabled = false;
+                
+                // Set first park as current
+                if (parksData.length > 0) {
+                    currentPark = parksData[0].id;
+                    selector.value = currentPark;
+                    await populateDateSelector();
+                }
+                
+            } catch (error) {
+                console.error('Error loading parks:', error);
+                selector.innerHTML = '<option value="">Erro ao carregar parques</option>';
+                showError('Não foi possível carregar a lista de parques. Verifique suas credenciais do Supabase.');
+            }
+        }
+
+        async function populateDateSelector() {
+            const selector = document.getElementById('dateSelector');
+            selector.disabled = true;
+            selector.innerHTML = '<option value="">Carregando datas...</option>';
+            
+            try {
+                availableDates = await loadAvailableDates(currentPark);
+                
+                if (availableDates.length === 0) {
+                    selector.innerHTML = '<option value="">Nenhuma data disponível</option>';
+                    showEmpty();
+                    return;
+                }
+                
+                selector.innerHTML = availableDates
+                    .map(date => `<option value="${date}">${formatDateBR(date)}</option>`)
+                    .join('');
+                
+                selector.disabled = false;
+                currentDate = availableDates[0];
+                selector.value = currentDate;
+                
+                await loadData();
+                
+            } catch (error) {
+                console.error('Error loading dates:', error);
+                selector.innerHTML = '<option value="">Erro ao carregar datas</option>';
+                showError('Não foi possível carregar as datas disponíveis.');
+            }
+        }
+
+        async function loadData() {
+            if (!currentPark || !currentDate) return;
+            
+            showLoading();
+            
+            try {
+                // Load schedule and wait times in parallel
+                const [schedule, waitTimes] = await Promise.all([
+                    loadParkSchedule(currentPark, currentDate),
+                    loadWaitTimes(currentPark, currentDate)
+                ]);
+                
+                currentSchedule = schedule;
+                waitTimesData = waitTimes;
+                
+                updateScheduleBar();
+                updateLastUpdated();
+                
+                const parkInfo = parksData.find(p => p.id === currentPark);
+                updateParkSubtitle(parkInfo?.name);
+                
+                if (waitTimes.length === 0) {
+                    showEmpty();
+                    return;
+                }
+                
+                renderTable(waitTimes);
+                hideLoading();
+                
+            } catch (error) {
+                console.error('Error loading data:', error);
+                showError('Erro ao carregar dados. Tente novamente.');
+            }
+        }
+
+        function transformToGrid(rawData) {
+            const grid = {};
+            const timeSlots = new Set();
+            
+            rawData.forEach(record => {
+                const attractionName = record.attractions.name;
+                const attractionType = record.attractions.type || 'Área';
+                const time = utcToOrlando(record.recorded_at);
+                
+                if (!grid[attractionName]) {
+                    grid[attractionName] = {
+                        name: attractionName,
+                        type: attractionType,
+                        times: {}
+                    };
+                }
+                
+                grid[attractionName].times[time] = {
+                    wait: record.wait_minutes,
+                    status: record.status
+                };
+                
+                timeSlots.add(time);
+            });
+            
+            return {
+                attractions: Object.values(grid).sort((a, b) => a.name.localeCompare(b.name)),
+                timeSlots: [...timeSlots].sort()
+            };
+        }
+
+        function renderTable(waitTimes) {
+            const { attractions, timeSlots } = transformToGrid(waitTimes);
+            
+            // Render header
+            let headerHTML = '<tr><th>Atração</th>';
+            timeSlots.forEach(time => {
+                const isHourMark = time.endsWith(':00');
+                const isEarly = currentSchedule?.early_entry && time < currentSchedule.open_time?.substring(0, 5);
+                headerHTML += `<th class="time-header ${isHourMark ? 'hour-mark' : ''} ${isEarly ? 'early-entry' : ''}">${time}</th>`;
+            });
+            headerHTML += '</tr>';
+            document.getElementById('tableHead').innerHTML = headerHTML;
+            
+            // Store all wait data for stats
+            const allWaitData = [];
+            
+            // Render body
+            let bodyHTML = '';
+            attractions.forEach(attraction => {
+                const attractionWaits = [];
+                
+                bodyHTML += '<tr>';
+                bodyHTML += `<td><div class="attraction-name">${attraction.name}</div><div class="attraction-type">${attraction.type}</div></td>`;
+                
+                timeSlots.forEach(time => {
+                    const data = attraction.times[time];
+                    
+                    if (!data) {
+                        bodyHTML += `<td><div class="queue-cell closed" data-tooltip="Sem dados">-</div></td>`;
+                    } else if (data.status === 'CLOSED') {
+                        bodyHTML += `<td><div class="queue-cell closed" data-tooltip="${attraction.name} às ${time}: Fechado">—</div></td>`;
+                    } else if (data.status === 'DOWN') {
+                        bodyHTML += `<td><div class="queue-cell down" data-tooltip="${attraction.name} às ${time}: Parado">⚠</div></td>`;
+                    } else {
+                        const colorClass = getQueueClass(data.wait);
+                        const tooltip = `${attraction.name} às ${time}: ${data.wait} min`;
+                        attractionWaits.push({ time, wait: data.wait });
+                        bodyHTML += `<td><div class="queue-cell ${colorClass}" data-tooltip="${tooltip}">${data.wait}</div></td>`;
+                    }
+                });
+                
+                if (attractionWaits.length > 0) {
+                    allWaitData.push({ name: attraction.name, waits: attractionWaits });
+                }
+                bodyHTML += '</tr>';
+            });
+            
+            document.getElementById('tableBody').innerHTML = bodyHTML;
+            
+            // Update stats
+            if (allWaitData.length > 0) {
+                updateStats(allWaitData);
+                document.getElementById('statsPanel').classList.remove('hidden');
+            } else {
+                document.getElementById('statsPanel').classList.add('hidden');
+            }
+        }
+
+        function updateStats(data) {
+            // Calculate summary stats
+            let allWaits = [];
+            data.forEach(attraction => {
+                attraction.waits.forEach(w => {
+                    if (w.wait !== null) allWaits.push(w.wait);
+                });
+            });
+            
+            if (allWaits.length === 0) return;
+            
+            const avgWait = Math.round(allWaits.reduce((a, b) => a + b, 0) / allWaits.length);
+            const maxWait = Math.max(...allWaits);
+            const minWait = Math.min(...allWaits);
+            
+            document.getElementById('summaryStats').innerHTML = `
+                <div class="summary-stat">
+                    <div class="summary-stat-value">${avgWait}</div>
+                    <div class="summary-stat-label">Média (min)</div>
+                </div>
+                <div class="summary-stat">
+                    <div class="summary-stat-value">${minWait}</div>
+                    <div class="summary-stat-label">Mínimo (min)</div>
+                </div>
+                <div class="summary-stat">
+                    <div class="summary-stat-value">${maxWait}</div>
+                    <div class="summary-stat-label">Máximo (min)</div>
+                </div>
+            `;
+            
+            // Find best times for top attractions (by average wait)
+            const attractionStats = data.map(attraction => {
+                const avgAttractionWait = attraction.waits.reduce((sum, w) => sum + w.wait, 0) / attraction.waits.length;
+                const minWait = Math.min(...attraction.waits.map(w => w.wait));
+                const bestSlot = attraction.waits.find(w => w.wait === minWait);
+                return {
+                    name: attraction.name,
+                    avgWait: avgAttractionWait,
+                    bestTime: bestSlot.time,
+                    bestWait: minWait
+                };
+            });
+            
+            // Sort by average wait (show busiest attractions' best times)
+            attractionStats.sort((a, b) => b.avgWait - a.avgWait);
+            const topAttractions = attractionStats.slice(0, 5);
+            
+            document.getElementById('bestTimes').innerHTML = topAttractions.map(item => `
+                <div class="best-time-item">
+                    <span class="best-time-attraction">${item.name}</span>
+                    <span class="best-time-value">${item.bestTime} → ${item.bestWait} min</span>
+                </div>
+            `).join('');
+        }
+
+        // ============================================
+        // EVENT LISTENERS
+        // ============================================
+
+        document.getElementById('parkSelector').addEventListener('change', async (e) => {
+            currentPark = e.target.value;
+            await populateDateSelector();
+        });
+
+        document.getElementById('dateSelector').addEventListener('change', async (e) => {
+            currentDate = e.target.value;
+            await loadData();
+        });
+
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+
+        async function init() {
+            const config = getConfig();
+            
+            if (!config) {
+                // Show config modal
+                document.getElementById('configModal').classList.remove('hidden');
+                hideLoading();
+                return;
+            }
+            
+            await populateParkSelector();
+        }
+
+        // Auto-refresh for today's data (every 10 minutes)
+        setInterval(() => {
+            const today = new Date().toISOString().split('T')[0];
+            if (currentDate === today) {
+                loadData();
+            }
+        }, 10 * 60 * 1000);
+
+        // Start the app
+        init();
+    </script>
+</body>
+</html>
