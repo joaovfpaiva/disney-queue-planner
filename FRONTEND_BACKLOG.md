@@ -32,15 +32,7 @@ Substituir dados mock por dados reais do Supabase.
 
 #### 2.1 Configurar conexão
 
-```javascript
-const SUPABASE_URL = 'https://SEU_PROJETO.supabase.co';
-const SUPABASE_ANON_KEY = 'sua-anon-key';
-
-const headers = {
-    'apikey': SUPABASE_ANON_KEY,
-    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-};
-```
+Configurar variáveis de ambiente `SUPABASE_URL` e `SUPABASE_ANON_KEY` no Netlify.
 
 #### 2.2 Carregar lista de parques
 
@@ -270,22 +262,14 @@ disney-queue-planner/
 
 ## Credenciais Necessárias
 
-Para o frontend funcionar, você precisa configurar:
-
-```javascript
-// js/config.js
-const CONFIG = {
-    SUPABASE_URL: 'https://xxxxxxxxxx.supabase.co',
-    SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
-};
-```
+Para o frontend funcionar, configure as variáveis de ambiente no Netlify:
+- `SUPABASE_URL`
+- `SUPABASE_ANON_KEY`
 
 **Onde encontrar**:
 1. Acesse o Supabase Dashboard
 2. Settings → API
-3. Copie:
-   - Project URL
-   - anon/public key (NÃO a service_role!)
+3. Copie Project URL e anon/public key (NÃO a service_role!)
 
 ---
 

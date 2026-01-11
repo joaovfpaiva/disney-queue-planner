@@ -5,6 +5,11 @@
 [build]
   publish = "."
   command = "node build.js"
+  
+  [build.environment]
+    # Supabase anon key é PÚBLICA por design (RLS controla acesso)
+    # Ignorar no scanner de secrets do Netlify
+    SECRETS_SCAN_OMIT_KEYS = "SUPABASE_URL,SUPABASE_ANON_KEY"
 
 [[headers]]
   for = "/*"

@@ -44,14 +44,10 @@ Sistema de visualização de tempos de fila de parques temáticos em Orlando. Ac
 
 ## ⚙️ Configuração do Supabase
 
-### Opção 1: Variáveis de Ambiente no Netlify (Recomendado)
-
 As credenciais são configuradas no painel do Netlify, **nunca no código**:
 
 1. No Netlify, vá em **Site settings → Environment variables**
-2. Adicione as variáveis:
-   - `SUPABASE_URL` = `https://xxxxx.supabase.co`
-   - `SUPABASE_ANON_KEY` = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`
+2. Adicione as variáveis `SUPABASE_URL` e `SUPABASE_ANON_KEY`
 3. Faça um novo deploy (Deploys → Trigger deploy)
 
 **Onde encontrar as credenciais:**
@@ -60,26 +56,6 @@ As credenciais são configuradas no painel do Netlify, **nunca no código**:
 3. Copie **Project URL** e **anon/public key**
 
 > ⚠️ **IMPORTANTE**: Use a chave `anon`, não a `service_role`!
-
-### Opção 2: Configuração Manual (Modal)
-
-Se as variáveis de ambiente não estiverem configuradas, o app mostrará um modal pedindo as credenciais. Elas são salvas no localStorage do seu navegador.
-
-### Desenvolvimento Local
-
-Para rodar localmente, crie um arquivo `.env` baseado no `env.example`:
-
-```bash
-cp env.example .env
-# Edite o .env com suas credenciais
-```
-
-Depois rode o build:
-```bash
-node build.js
-```
-
-> O arquivo `.env` está no `.gitignore` e **nunca será commitado**.
 
 ## 📊 Schema do Banco de Dados
 
@@ -122,7 +98,6 @@ disney-queue-planner/
 ├── config.js                     # Gerado pelo build (não commitado)
 ├── build.js                      # Script de build para Netlify
 ├── netlify.toml                  # Configuração do Netlify
-├── env.example                   # Template de variáveis de ambiente
 ├── .gitignore                    # Arquivos ignorados
 ├── disney-queue-visualizer.html  # Protótipo original (mock data)
 ├── BACKEND_DOCUMENTATION.md      # Documentação do schema
