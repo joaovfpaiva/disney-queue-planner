@@ -1,7 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
-import { utcToOrlandoDate } from '@/lib/orlando-timezone'
 
+/**
+ * Busca datas disponíveis para um parque usando RPC otimizada.
+ * A função get_available_dates faz DISTINCT diretamente no banco,
+ * retornando apenas as datas únicas (muito mais eficiente).
+ */
 export function useAvailableDates(parkId: string | null) {
   return useQuery({
     queryKey: ['availableDates', parkId],
@@ -9,16 +13,12 @@ export function useAvailableDates(parkId: string | null) {
       if (!parkId) return []
 
       const { data, error } = await supabase
-        .from('wait_times')
-        .select('recorded_at, attractions!inner(park_id)')
-        .eq('attractions.park_id', parkId)
-        .order('recorded_at', { ascending: false })
+        .rpc('get_available_dates', { p_park_id: parkId })
 
       if (error) throw error
 
-      // Extrai datas únicas convertendo UTC -> Orlando
-      const dates = [...new Set((data || []).map(d => utcToOrlandoDate(d.recorded_at)))]
-      return dates.sort().reverse()
+      // RPC retorna array de { date: 'YYYY-MM-DD' }, já ordenado DESC
+      return (data || []).map((d: { date: string }) => d.date)
     },
     enabled: !!parkId,
     staleTime: 1000 * 60 * 5, // 5 minutes

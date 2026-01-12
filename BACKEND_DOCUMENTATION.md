@@ -229,18 +229,38 @@ const waitTimes = await response.json();
 
 ---
 
-### 5. Buscar datas disponíveis com dados
+### 5. Buscar datas disponíveis com dados (RPC Otimizada)
+
+**⚠️ Importante**: Não use query direta na tabela `wait_times` para buscar datas únicas! Com milhares de registros, isso é extremamente ineficiente e bate no limite de 1000 registros do Supabase.
+
+**Solução**: Use a função RPC `get_available_dates` que faz `DISTINCT` diretamente no banco:
 
 ```javascript
-const parkId = 'magic-kingdom';
-const response = await fetch(
-    `${SUPABASE_URL}/rest/v1/wait_times?select=recorded_at,attractions!inner(park_id)&attractions.park_id=eq.${parkId}`,
-    { headers }
-);
-const data = await response.json();
+// ✅ Forma correta - usa RPC
+const { data, error } = await supabase
+  .rpc('get_available_dates', { p_park_id: parkId });
 
-// Extrair datas únicas
-const dates = [...new Set(data.map(d => d.recorded_at.split('T')[0]))];
+// Retorna: [{ date: '2026-01-11' }, { date: '2026-01-10' }, ...]
+const dates = data.map(d => d.date);
+```
+
+**SQL da função RPC** (já criada no Supabase):
+```sql
+CREATE OR REPLACE FUNCTION get_available_dates(p_park_id TEXT)
+RETURNS TABLE(date TEXT) 
+LANGUAGE sql
+STABLE
+AS $$
+  SELECT DISTINCT 
+    TO_CHAR(
+      wt.recorded_at AT TIME ZONE 'America/New_York', 
+      'YYYY-MM-DD'
+    ) as date
+  FROM wait_times wt
+  INNER JOIN attractions a ON a.id = wt.attraction_id
+  WHERE a.park_id = p_park_id
+  ORDER BY date DESC;
+$$;
 ```
 
 ---
@@ -367,3 +387,53 @@ const sortedSlots = [...timeSlots].sort();
 | wait_times | Crescendo | ~300 × 6/hora × 12h × 9 parques = ~194k/dia |
 
 **Nota**: O Supabase free tier tem 500MB, suficiente para semanas de dados.
+
+---
+
+## Limites e Paginação do Supabase
+
+### Limite de 1000 registros
+
+O Supabase tem um limite padrão de **1000 registros por query**. Isso pode ser alterado no dashboard (Settings → API → Max Rows), mas para garantir robustez, o frontend implementa paginação.
+
+### Paginação no Frontend
+
+O hook `useWaitTimes` usa paginação automática para buscar todos os dados de um parque/dia:
+
+```typescript
+const PAGE_SIZE = 1000;
+const allData: WaitTime[] = [];
+let page = 0;
+let hasMore = true;
+
+while (hasMore) {
+  const from = page * PAGE_SIZE;
+  const to = from + PAGE_SIZE - 1;
+
+  const { data } = await supabase
+    .from('wait_times')
+    .select('*, attractions!inner(...)')
+    .eq('attractions.park_id', parkId)
+    .gte('recorded_at', startUTC)
+    .lt('recorded_at', endUTC)
+    .order('recorded_at')
+    .range(from, to);  // Paginação
+
+  allData.push(...data);
+  hasMore = data.length === PAGE_SIZE;
+  page++;
+}
+```
+
+### Otimizações Implementadas
+
+| Query | Problema | Solução |
+|-------|----------|---------|
+| Datas disponíveis | Trazia 40k+ registros para extrair ~3 datas | RPC `get_available_dates` com DISTINCT no banco |
+| Wait times do dia | Podia passar de 1000 registros | Paginação automática com `.range()` |
+
+### Funções RPC Disponíveis
+
+| Função | Parâmetros | Retorno |
+|--------|------------|---------|
+| `get_available_dates` | `p_park_id: TEXT` | `TABLE(date TEXT)` - Datas únicas no timezone de Orlando |

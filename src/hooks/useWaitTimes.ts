@@ -3,6 +3,12 @@ import { supabase } from '@/lib/supabase'
 import { getOrlandoDayStartUTC, getOrlandoDayEndUTC, utcToOrlandoTime } from '@/lib/orlando-timezone'
 import type { WaitTime, AttractionGridData, GridData } from '@/types'
 
+const PAGE_SIZE = 1000
+
+/**
+ * Busca wait times de um parque em uma data específica.
+ * Usa paginação para contornar o limite de 1000 registros do Supabase.
+ */
 export function useWaitTimes(parkId: string | null, date: string | null) {
   return useQuery({
     queryKey: ['waitTimes', parkId, date],
@@ -14,16 +20,36 @@ export function useWaitTimes(parkId: string | null, date: string | null) {
       const startUTC = getOrlandoDayStartUTC(date)
       const endUTC = getOrlandoDayEndUTC(date)
 
-      const { data, error } = await supabase
-        .from('wait_times')
-        .select('*, attractions!inner(id, name, type, park_id)')
-        .eq('attractions.park_id', parkId)
-        .gte('recorded_at', startUTC)
-        .lt('recorded_at', endUTC)
-        .order('recorded_at')
+      // Busca paginada para contornar limite de 1000 registros do Supabase
+      const allData: WaitTime[] = []
+      let page = 0
+      let hasMore = true
 
-      if (error) throw error
-      return data || []
+      while (hasMore) {
+        const from = page * PAGE_SIZE
+        const to = from + PAGE_SIZE - 1
+
+        const { data, error } = await supabase
+          .from('wait_times')
+          .select('*, attractions!inner(id, name, type, park_id)')
+          .eq('attractions.park_id', parkId)
+          .gte('recorded_at', startUTC)
+          .lt('recorded_at', endUTC)
+          .order('recorded_at')
+          .range(from, to)
+
+        if (error) throw error
+
+        if (data && data.length > 0) {
+          allData.push(...data)
+          hasMore = data.length === PAGE_SIZE
+          page++
+        } else {
+          hasMore = false
+        }
+      }
+
+      return allData
     },
     enabled: !!parkId && !!date,
     staleTime: 1000 * 60 * 2, // 2 minutes - wait times update frequently
